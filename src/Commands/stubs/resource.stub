@@ -1,0 +1,16 @@
+<?php
+
+namespace {{ namespace }};
+
+use Bfg\Resource\BfgResource;
+{{ doc_block }}
+class {{ class }} extends BfgResource
+{{{ uses }}
+    /**
+     * Map of resource fields
+     * @var array
+     */
+    protected array $map = [
+
+    ];
+}

@@ -1,0 +1,1 @@
+<?phpnamespace Bfg\Resource\Exceptions;class UndefinedScopeException extends ResourceException{    public function __construct()    {        parent::__construct(            'Undefined scope',            409        );    }}

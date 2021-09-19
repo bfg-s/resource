@@ -1,0 +1,37 @@
+{
+    "name": "bfg/resource",
+    "description": "A small addition to the resources to the Laravel",
+    "type": "bfg-app",
+    "keywords": ["laravel", "extension", "resource"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "bfg"
+        }
+    ],
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.0.0",
+        "bfg/installer": "*",
+        "bfg/permission": "*",
+        "bfg/embedded-call": "*",
+        "bfg/object": "*",
+        "bfg/route": "*"
+    },
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {
+            "Bfg\\Resource\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Bfg\\Resource\\ServiceProvider"
+            ]
+        }
+    }
+}
