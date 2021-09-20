@@ -2,7 +2,7 @@
 
 namespace Bfg\Resource\Traits\Eloquent;
 
-trait EloquentGetScopeTrait
+trait EloquentAllScopeTrait
 {
     /**
      * Eloquent get scope.

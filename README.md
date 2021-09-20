@@ -294,7 +294,7 @@ Trait to add `scope` Gets of the first record.
 [GET] http://example.com/api/user/[first]
 ```
 
-#### EloquentGetScopeTrait
+#### EloquentAllScopeTrait
 Trait to add `scope` Receiving all records.
 ```url
 [GET] http://example.com/api/user/get
