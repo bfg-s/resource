@@ -339,6 +339,17 @@ General trait for connecting all `Model` `scope`.
 ## Policy
 To protect with `Laravel Policy`, I added you attributes that are responsible for it.
 
+### GetResource
+Attribute for checking `resource`.
+```php
+#[GetResource, CanRsource]
+class DirectorResource extends BfgResource
+{
+    ...
+}
+```
+Will check the `id-field-user`.
+
 ### CanScope
 Attribute for checking `scope`.
 ```php
@@ -410,3 +421,16 @@ Will check `resource->local_field == auth->user->user_field`.
 
 If the policy does not fit, it is simply not present in 
 the overall list, but reserved in the collection.
+
+## PHP Class scope api
+To call `scope` In` PHP`, you can use the static constructor:
+```php
+use App\Http\Resources\UserResource;
+...
+    // For get resource instance
+    UserResource::scope('where', 'name', 'admin', 'first');
+    
+    // For get resource array result
+    UserResource::scope('where', 'name', 'admin', 'first')->toFields();
+...
+```

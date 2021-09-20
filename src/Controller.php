@@ -12,15 +12,23 @@ use Illuminate\Support\Collection;
 class Controller
 {
     /**
-     * @param  BfgResource|string  $resource
-     * @return mixed
-     * @throws \Throwable
+     * @var string|null
      */
-    public function index($resource): mixed
+    protected ?string $scope = null;
+
+    /**
+     * @param  BfgResource|string  $resource
+     * @param  string|null  $scope
+     * @return mixed
+     */
+    public function index($resource, string $scope = null): mixed
     {
+        $this->scope = $scope ?: request('scope');
+
         try {
             $result = $this->buildDefaultResource($resource);
         } catch (\Throwable $exception) {
+            \Log::error($exception);
             return $this->buildException($exception);
         }
 
@@ -35,7 +43,6 @@ class Controller
     protected function buildException(\Throwable $exception): \Illuminate\Http\JsonResponse
     {
         if (config('app.debug')) {
-            \Log::error($exception);
             if (!($exception instanceof ResourceException)) {
                 return response()->json([
                     'status' => 'error',
@@ -80,14 +87,12 @@ class Controller
      */
     protected function applyScopes(string $resource, $result): mixed
     {
-        $scope = request('scope');
-
         if (method_exists($resource, 'globalScope')) {
             $result = embedded_call([$resource, 'globalScope'], [$result]);
         }
 
-        return $scope ? $this->callScopes(
-            $this->sortScopes($scope, $resource), $resource, $result
+        return $this->scope ? static::callScopes(
+            static::sortScopes($this->scope, $resource), $resource, $result
         ) : $result;
     }
 
@@ -98,14 +103,14 @@ class Controller
      * @return mixed
      * @throws \Throwable
      */
-    protected function callScopes(array $callScopes, $resource, $result): mixed
+    public static function callScopes(array $callScopes, $resource, $result): mixed
     {
-        $ref = new  \ReflectionClass($resource);
+        $ref = new \ReflectionClass($resource);
         $resource_name = \Str::snake(str_replace('Resource', '', class_basename($resource)));
         foreach ($callScopes as $callScope => $scopeParams) {
             $callScope = preg_replace("/[\d]+#(.*)/", '$1', $callScope);
-            $this->checkCanScope($ref, $callScope, $resource, $resource_name);
-            $call = fn($model) => $this->scopeCaller($model, $callScope, $scopeParams, $resource);
+            static::checkCanScope($ref, $callScope, $resource, $resource_name);
+            $call = fn($model) => static::scopeCaller($model, $callScope, $scopeParams, $resource);
             if ($result instanceof \Illuminate\Database\Eloquent\Collection) {
                 return $result->map($call);
             } else {
@@ -130,7 +135,7 @@ class Controller
      * @throws \ReflectionException
      * @throws PermissionDeniedException
      */
-    protected function checkCanScope(\ReflectionClass $ref, $callScope, $resource, $resource_name)
+    public static function checkCanScope(\ReflectionClass $ref, $callScope, $resource, $resource_name)
     {
         $method = $ref->getMethod($callScope);
         $scope_name = str_replace("Scope", "", $callScope);
@@ -156,7 +161,7 @@ class Controller
      * @return mixed
      * @throws \Throwable
      */
-    protected function scopeCaller($model, $callScope, $scopeParams, $resource): mixed
+    public static function scopeCaller($model, $callScope, $scopeParams, $resource): mixed
     {
         return embedded_call([$resource, $callScope],
             [$model, (array) $scopeParams, ...(array) $scopeParams]);
@@ -168,7 +173,7 @@ class Controller
      * @return array
      * @throws \Exception
      */
-    protected function sortScopes(string $scope, string $resource): array
+    public static function sortScopes(string $scope, string $resource): array
     {
         $callScopes = [];
         $scopes = explode('/', $scope);
@@ -185,7 +190,7 @@ class Controller
                 if (count($callScopes)) {
                     $callScopes[array_key_last($callScopes)][] = route_real_param($scope);
                 } else {
-                    throw new UndefinedScopeException();
+                    throw new UndefinedScopeException($scope);
                 }
             }
         }

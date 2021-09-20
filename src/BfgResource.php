@@ -2,11 +2,12 @@
 
 namespace Bfg\Resource;
 
-use App\Models\Rule;
 use App\Models\User;
 use Bfg\Resource\Attributes\CanFields;
+use Bfg\Resource\Attributes\CanResource;
 use Bfg\Resource\Attributes\CanUser;
 use Bfg\Resource\Exceptions\PermissionDeniedException;
+use Bfg\Resource\Traits\ResourceClassApiTrait;
 use Bfg\Resource\Traits\ResourceRoutingTrait;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Castable;
@@ -23,7 +24,8 @@ use Illuminate\Support\Facades\Date;
 
 class BfgResource extends JsonResource
 {
-    use ResourceRoutingTrait;
+    use ResourceRoutingTrait,
+        ResourceClassApiTrait;
 
     /**
      * The default resource.
@@ -104,7 +106,7 @@ class BfgResource extends JsonResource
     /**
      * @return User|null
      */
-    protected function user()
+    protected function user(): ?User
     {
         if (!static::$user) {
             static::$user = \Auth::guard(static::$guard)->user();
@@ -122,7 +124,7 @@ class BfgResource extends JsonResource
     {
         $resource_name = \Str::snake(str_replace('Resource', '', class_basename(static::class)));
 
-        $check_fields = $this->accessCheck();
+        $check_fields = $this->accessCheck($resource_name);
 
         if ($check_fields === null) {
             return [];
@@ -156,26 +158,43 @@ class BfgResource extends JsonResource
     }
 
     /**
+     * @param $resource_name
      * @return array|null
      */
-    protected function accessCheck(): ?array
+    protected function accessCheck($resource_name): ?array
     {
         $ref = new \ReflectionClass(static::class);
 
         $map_ref = $ref->getProperty('map');
 
-        $attributes = $ref->getAttributes(CanUser::class, \ReflectionAttribute::IS_INSTANCEOF);
+        $attributes = $ref->getAttributes(CanResource::class, \ReflectionAttribute::IS_INSTANCEOF);
+
+        $attributes_user = $ref->getAttributes(CanUser::class, \ReflectionAttribute::IS_INSTANCEOF);
 
         $map_attributes = $map_ref->getAttributes(CanFields::class, \ReflectionAttribute::IS_INSTANCEOF);
 
         $check_fields = [];
 
-        if ($attributes) {
+        if ($attributes || $attributes_user || $map_attributes) {
             if (!$this->user()) {
                 return null;
             }
+        }
 
-            foreach ($attributes as $attribute) {
+        if ($attributes) {
+            foreach ($map_attributes as $attribute) {
+                $attribute = $attribute->newInstance();
+                /** @var CanResource $attribute */
+                if (!$this->user()->can(
+                    $attribute->permission ?: $resource_name
+                )) {
+                    return null;
+                }
+            }
+        }
+
+        if ($attributes_user) {
+            foreach ($attributes_user as $attribute) {
                 $attribute = $attribute->newInstance();
                 /** @var CanUser $attribute */
                 if (
@@ -188,10 +207,6 @@ class BfgResource extends JsonResource
         }
 
         if ($map_attributes) {
-            if (!$this->user()) {
-                return null;
-            }
-
             foreach ($map_attributes as $attribute) {
                 $attribute = $attribute->newInstance();
                 $check_fields = array_merge($check_fields, $attribute->fields);
