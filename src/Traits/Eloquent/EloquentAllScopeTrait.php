@@ -10,7 +10,7 @@ trait EloquentAllScopeTrait
      * @param $model
      * @return mixed
      */
-    public static function getScope($model): mixed
+    public static function allScope($model): mixed
     {
         return $model->get();
     }

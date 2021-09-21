@@ -346,7 +346,7 @@ class BfgResource extends JsonResource
 
         if ($resource_class && $this->resource) {
             if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator) {
-                $this->fields[$name] = $resource_result = tap(new AnonymousResourceCollection($resource_result,
+                $this->fields[$name] = $resource_result = tap(new BfgResourceCollection($resource_result,
                     $resource_class), function ($collection) use ($resource_class) {
                     if (property_exists($resource_class, 'preserveKeys')) {
                         $collection->preserveKeys = (new static([]))->preserveKeys === true;
@@ -590,6 +590,22 @@ class BfgResource extends JsonResource
         }
 
         return new $castType(...$arguments);
+    }
+
+    /**
+     * Create a new anonymous resource collection.
+     *
+     * @param  mixed  $resource
+     * @return BfgResourceCollection
+     * @throws PermissionDeniedException
+     */
+    public static function collection($resource)
+    {
+        return tap(new BfgResourceCollection($resource, static::class), function ($collection) {
+            if (property_exists(static::class, 'preserveKeys')) {
+                $collection->preserveKeys = (new static([]))->preserveKeys === true;
+            }
+        });
     }
 
     /**
