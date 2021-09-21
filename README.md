@@ -339,10 +339,10 @@ General trait for connecting all `Model` `scope`.
 ## Policy
 To protect with `Laravel Policy`, I added you attributes that are responsible for it.
 
-### GetResource
+### CanResource
 Attribute for checking `resource`.
 ```php
-#[GetResource, CanRsource]
+#[GetResource, CanResource]
 class DirectorResource extends BfgResource
 {
     ...
