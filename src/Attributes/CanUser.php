@@ -10,8 +10,9 @@ use Illuminate\Routing\Router;
  * Class CanUser.
  * @package Bfg\Resource\Attributes
  */
-#[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-class CanUser
+#[Attribute(
+    Attribute::TARGET_CLASS | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE
+)] class CanUser
 {
     /**
      * @param  string  $local_field

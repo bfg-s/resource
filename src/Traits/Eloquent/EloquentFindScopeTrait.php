@@ -2,18 +2,21 @@
 
 namespace Bfg\Resource\Traits\Eloquent;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+
 trait EloquentFindScopeTrait
 {
     /**
      * Find by id eloquent scope.
      *
-     * @param $model
+     * @param  Builder|Model $model
      * @param  array  $data
      * @param  int  $id
      * @return mixed
      */
-    public static function findScope($model, array $data, int $id): mixed
+    public static function findScope(Builder|Model $model, int $id, ...$data): mixed
     {
-        return $model->find($id);
+        return $model->find($id, $data ?: ['*']);
     }
 }

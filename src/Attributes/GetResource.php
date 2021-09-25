@@ -25,12 +25,12 @@ class GetResource extends Invokable
         array|string $middleware = [],
     ) {
         parent::__construct(
-            uri: "{$uri}/{scope}",
+            uri: "{$uri}/{scope?}",
             method: Router::$verbs,
             name: $name,
             responsible: 'routeAction',
             middleware: $middleware,
-            where: ['scope', "^[a-zA-Z][a-zA-Z0-9\\_\\/\\-\*\=\!\>\<]+$"]
+            where: ['scope', "^[a-zA-Z][a-zA-Z0-9\\_\\/\\-\*\=\!\>\<]*$"]
         );
     }
 

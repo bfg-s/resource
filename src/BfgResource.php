@@ -361,7 +361,7 @@ class BfgResource extends JsonResource
 
         if ($relation_loaded && !isset($this->fields[$name]) && !$drop_if_null) {
             $this->fields[$name] = $relation_collection ? [] : null;
-        } elseif ($drop_if_null && is_null($this->fields[$name])) {
+        } elseif ($drop_if_null && array_key_exists($name, $this->fields) && is_null($this->fields[$name])) {
             unset($this->fields[$name]);
         }
 
@@ -608,22 +608,36 @@ class BfgResource extends JsonResource
         });
     }
 
+    public static function getResource()
+    {
+        return static::$model;
+    }
+
     /**
      * Getter function for cutomize.
      * @return mixed
      */
     public static function getDefaultResource(): mixed
     {
-        if (! static::$model) {
+        $resource = static::getResource();
+
+        if (! $resource) {
             $class_name = class_basename(static::class);
             $class_name = preg_replace('/(.*)Resource$/', '$1', $class_name);
             $model_find = "App\\Models\\{$class_name}";
             if (class_exists($model_find)) {
-                static::$model = $model_find;
+                $resource = $model_find;
             }
         }
 
-        return is_string(static::$model) ? app(static::$model) : static::$model;
+        $model = is_string($resource) ? app($resource) : $resource;
+
+        if ($model instanceof Model) {
+
+            $model = $model::query();
+        }
+
+        return $model;
     }
 
     /**

@@ -2,10 +2,14 @@
 
 namespace Bfg\Resource;
 
+use App\Models\User;
 use Bfg\Resource\Attributes\CanScope;
+use Bfg\Resource\Attributes\CanUser;
+use Bfg\Resource\Exceptions\AttemptToCheckBuilderException;
 use Bfg\Resource\Exceptions\PermissionDeniedException;
 use Bfg\Resource\Exceptions\ResourceException;
 use Bfg\Resource\Exceptions\UndefinedScopeException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -17,11 +21,18 @@ class Controller
     protected ?string $scope = null;
 
     /**
+     * @var User|null
+     */
+    public static ?User $user = null;
+
+    /**
      * @param  BfgResource|string  $resource
      * @param  string|null  $scope
      * @return mixed
+     * @throws PermissionDeniedException
+     * @throws \Throwable
      */
-    public function index($resource, string $scope = null): mixed
+    public function index(BfgResource|string $resource, string $scope = null): mixed
     {
         $this->scope = $scope ?: request('scope');
 
@@ -30,6 +41,13 @@ class Controller
         } catch (\Throwable $exception) {
             \Log::error($exception);
             return $this->buildException($exception);
+        }
+
+        if ($result instanceof Builder) {
+            $route_method = strtolower(request()->getMethod())."Method";
+            if (method_exists($resource, $route_method)) {
+                $result = embedded_call([$resource, $route_method], [$result]);
+            }
         }
 
         return $result ? ($result instanceof Collection || $result instanceof LengthAwarePaginator ?
@@ -42,6 +60,8 @@ class Controller
      */
     protected function buildException(\Throwable $exception): \Illuminate\Http\JsonResponse
     {
+        $code = $exception->getCode() && is_numeric($exception->getCode()) ? $exception->getCode() : 400;
+
         if (config('app.debug')) {
             if (!($exception instanceof ResourceException)) {
                 return response()->json([
@@ -51,18 +71,18 @@ class Controller
                     'exception' => get_class($exception),
                     'message' => $exception->getMessage() ?: 'Bad Request',
                     'trace' => $exception->getTrace()
-                ], $exception->getCode() ?: 400);
+                ], $code);
             }
             return response()->json([
                 'status' => 'error',
                 'exception' => get_class($exception),
                 'message' => $exception->getMessage(),
-            ], $exception->getCode());
+            ], $code);
         }
         return response()->json([
             'status' => 'error',
             'message' => 'Bad Request',
-        ], $exception->getCode() ?: 400);
+        ], $code);
     }
 
     /**
@@ -71,7 +91,7 @@ class Controller
      * @return mixed
      * @throws \Throwable
      */
-    protected function buildDefaultResource($resource): mixed
+    protected function buildDefaultResource(BfgResource|string $resource): mixed
     {
         return $this->applyScopes(
             $resource,
@@ -80,12 +100,12 @@ class Controller
     }
 
     /**
-     * @param  string  $resource
+     * @param  BfgResource|string  $resource
      * @param $result
      * @return mixed
      * @throws \Throwable
      */
-    protected function applyScopes(string $resource, $result): mixed
+    protected function applyScopes(BfgResource|string $resource, $result): mixed
     {
         if (method_exists($resource, 'globalScope')) {
             $result = embedded_call([$resource, 'globalScope'], [$result]);
@@ -98,20 +118,20 @@ class Controller
 
     /**
      * @param  array  $callScopes
-     * @param $resource
+     * @param BfgResource|string $resource
      * @param $result
      * @return mixed
      * @throws \Throwable
      */
-    public static function callScopes(array $callScopes, $resource, $result): mixed
+    public static function callScopes(array $callScopes, BfgResource|string $resource, $result): mixed
     {
         $ref = new \ReflectionClass($resource);
         $resource_name = \Str::snake(str_replace('Resource', '', class_basename($resource)));
         foreach ($callScopes as $callScope => $scopeParams) {
             $callScope = preg_replace("/[\d]+#(.*)/", '$1', $callScope);
             static::checkCanScope($ref, $callScope, $resource, $resource_name);
-            $call = fn($model) => static::scopeCaller($model, $callScope, $scopeParams, $resource);
-            if ($result instanceof \Illuminate\Database\Eloquent\Collection) {
+            $call = fn($model) => static::scopeCaller($model, $callScope, $scopeParams, $resource, $ref);
+            if ($result instanceof Collection) {
                 return $result->map($call);
             } else {
                 if ($result instanceof LengthAwarePaginator) {
@@ -128,6 +148,19 @@ class Controller
     }
 
     /**
+     * @param $resource
+     * @return User|null
+     */
+    protected static function user($resource): ?User
+    {
+        if (!static::$user) {
+            static::$user = \Auth::guard($resource::$guard)->user();
+        }
+
+        return static::$user;
+    }
+
+    /**
      * @param  \ReflectionClass  $ref
      * @param $callScope
      * @param  string|BfgResource  $resource
@@ -135,7 +168,7 @@ class Controller
      * @throws \ReflectionException
      * @throws PermissionDeniedException
      */
-    public static function checkCanScope(\ReflectionClass $ref, $callScope, $resource, $resource_name)
+    public static function checkCanScope(\ReflectionClass $ref, $callScope, BfgResource|string $resource, $resource_name)
     {
         $method = $ref->getMethod($callScope);
         $scope_name = str_replace("Scope", "", $callScope);
@@ -151,29 +184,53 @@ class Controller
                 throw new PermissionDeniedException($scope_name);
             }
         }
+        $cans = $method->getAttributes(CanUser::class, \ReflectionAttribute::IS_INSTANCEOF);
     }
 
     /**
+     * For call scope method
      * @param $model
      * @param $callScope
      * @param $scopeParams
-     * @param $resource
+     * @param BfgResource|string $resource
+     * @param  \ReflectionClass  $ref
      * @return mixed
+     * @throws AttemptToCheckBuilderException
+     * @throws PermissionDeniedException
+     * @throws \ReflectionException
      * @throws \Throwable
      */
-    public static function scopeCaller($model, $callScope, $scopeParams, $resource): mixed
+    public static function scopeCaller($model, $callScope, $scopeParams, BfgResource|string $resource, \ReflectionClass $ref): mixed
     {
+        $method = $ref->getMethod($callScope);
+        $cans = $method->getAttributes(CanUser::class, \ReflectionAttribute::IS_INSTANCEOF);
+        if ($cans) {
+            if ($model instanceof Builder) {
+                throw new AttemptToCheckBuilderException();
+            }
+            foreach ($cans as $can) {
+                /** @var CanUser $attr */
+                $attribute = $can->newInstance();
+                if (
+                    multi_dot_call(static::user($resource), $attribute->user_field) !=
+                    multi_dot_call($model, $attribute->local_field)
+                ) {
+                    throw new PermissionDeniedException($callScope);
+                }
+            }
+        }
+
         return embedded_call([$resource, $callScope],
-            [$model, (array) $scopeParams, ...(array) $scopeParams]);
+            [$model, ...(array) $scopeParams]);
     }
 
     /**
      * @param  string  $scope
-     * @param  string  $resource
+     * @param  BfgResource|string  $resource
      * @return array
      * @throws \Exception
      */
-    public static function sortScopes(string $scope, string $resource): array
+    public static function sortScopes(string $scope, BfgResource|string $resource): array
     {
         $callScopes = [];
         $scopes = explode('/', $scope);
@@ -181,6 +238,9 @@ class Controller
         foreach ($scopes as $key => $scope) {
             $camel_scope = !is_numeric($scope) ? \Str::camel($scope) : null;
             $name_method = $camel_scope ? "{$camel_scope}{$route_method}Scope" : null;
+            if ($camel_scope && !method_exists($resource, $name_method)) {
+                $name_method = "{$camel_scope}CollectionScope";
+            }
             if ($camel_scope && !method_exists($resource, $name_method)) {
                 $name_method = "{$camel_scope}Scope";
             }

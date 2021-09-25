@@ -2,21 +2,22 @@
 
 namespace Bfg\Resource\Traits\Eloquent;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+
 trait EloquentWhereScopeTrait
 {
     /**
      * Eloquent where scope.
      *
-     * @param $model
-     * @param  array  $data
+     * @param  Builder|Model  $model
      * @param  string  $column
      * @param  string  $condition
      * @param  string|null  $value
      * @return mixed
      */
     public static function whereScope(
-        $model,
-        array $data,
+        Builder|Model $model,
         string $column,
         string $condition,
         string $value = null

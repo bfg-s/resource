@@ -248,19 +248,16 @@ model in the `BfgResource::$model` parameter or override the
 Now consider the `only` `scope`, where we accept all the parameters sequentially:
 ```php
 ...
-    public static function onlyScope($model, array $fields): mixed
+    public static function onlyScope($model, ...$fields): mixed
     {
         return $model?->only($fields);
     }
 ...
 ```
-The second `scope` takes `array` A list of all parameters that are transmitted to it.
-Further, consistently, they go to each other in a function, as an example here:
 ```php
 ...
     public static function paginateScope(
         $model,
-        array $data, // All values
         int $perPage = null,
         string $pageName = 'page',
         int $page = null
@@ -280,6 +277,13 @@ We formally alike add the method name in the name of the `updatePostScope` funct
 For more convenience, in the set there are already ready-made `scope` which I can make it easier for you
 Development.
 
+#### EloquentAllScopeTrait
+Trait to add `scope` Receiving all records.
+```url
+[GET] http://example.com/api/user/get
+[GET] http://example.com/api/user/[get]
+```
+
 #### EloquentFindScopeTrait
 Trait to add `scope` Search by `id`.
 ```url
@@ -294,11 +298,36 @@ Trait to add `scope` Gets of the first record.
 [GET] http://example.com/api/user/[first]
 ```
 
-#### EloquentAllScopeTrait
-Trait to add `scope` Receiving all records.
+#### EloquentForPageScopeTrait
+Trait to add `scope` To get pagination data for the page.
 ```url
-[GET] http://example.com/api/user/get
-[GET] http://example.com/api/user/[get]
+[GET] http://example.com/api/user/for_page/2
+[GET] http://example.com/api/user/[for_page]/[page]/[perPage=15]
+```
+
+#### EloquentLatestScopeTrait
+Trait to add `scope` To get the latest row.
+```url
+[GET] http://example.com/api/user/latest
+[GET] http://example.com/api/user/[latest]/[column=id]
+```
+
+#### EloquentLimitScopeTrait
+Trait to add `scope` To obtain the specified amount of data.
+```url
+[GET] http://example.com/api/user/limit/3
+[GET] http://example.com/api/user/[limit]/[count]
+```
+
+#### EloquentOrderByScopeTrait
+Trait to add `scope` To obtain assorted data.
+```url
+[GET] http://example.com/api/user/order_by/id
+[GET] http://example.com/api/user/[order_by]/[column]/[direction=asc]
+```
+```url
+[GET] http://example.com/api/user/order_by_desc/id
+[GET] http://example.com/api/user/[order_by_desc]/[column]
 ```
 
 #### EloquentPaginateScopeTrait
@@ -306,6 +335,20 @@ Trait to add `scope` Receive records with pagination.
 ```url
 [GET] http://example.com/api/user/paginate
 [GET] http://example.com/api/user/[paginate]/[perPage=null]/[pageName=page]/[page=null]
+```
+
+#### EloquentRandomScopeTrait
+Trait to add `scope` To obtain random data.
+```url
+[GET] http://example.com/api/user/random
+[GET] http://example.com/api/user/[random]/[seed=]
+```
+
+#### EloquentSkipScopeTrait
+Trait to add `scope` To skip the entries on the ID.
+```url
+[GET] http://example.com/api/user/skip
+[GET] http://example.com/api/user/[skip]/[ids]...
 ```
 
 #### EloquentWhereScopeTrait
@@ -335,6 +378,10 @@ General trait for connecting all `Eloquent` `scope`.
 
 #### ModelScopesTrait
 General trait for connecting all `Model` `scope`.
+
+### Final for the query method.
+For the `GET` method, the standard Finish `scope` `All` works. 
+For the method of `OPTIONS` `scope` `first`.
 
 ## Policy
 To protect with `Laravel Policy`, I added you attributes that are responsible for it.

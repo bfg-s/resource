@@ -13,7 +13,7 @@ trait ModelOnlyScopeTrait
      * @param  array  $fields
      * @return mixed
      */
-    public static function onlyScope($model, array $fields): mixed
+    public static function onlyScope(Model $model, ...$fields): mixed
     {
         return $model?->only($fields);
     }
