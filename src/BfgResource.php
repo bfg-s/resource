@@ -599,7 +599,7 @@ class BfgResource extends JsonResource
      * @return BfgResourceCollection
      * @throws PermissionDeniedException
      */
-    public static function collection($resource)
+    public static function collection($resource): BfgResourceCollection
     {
         return tap(new BfgResourceCollection($resource, static::class), function ($collection) {
             if (property_exists(static::class, 'preserveKeys')) {
@@ -608,7 +608,7 @@ class BfgResource extends JsonResource
         });
     }
 
-    public static function getResource()
+    public static function getResource(): mixed
     {
         return static::$model;
     }

@@ -11,10 +11,14 @@ trait ResourceClassApiTrait
     /**
      * @param ...$path
      * @return mixed
+     * @throws \Bfg\Resource\Exceptions\AttemptToCheckBuilderException
+     * @throws \Bfg\Resource\Exceptions\PermissionDeniedException
+     * @throws \Bfg\Resource\Exceptions\UndefinedScopeException
+     * @throws \ReflectionException
+     * @throws \Throwable
      */
     public static function scope(...$path)
     {
-
         $result = Controller::callScopes(
             Controller::sortScopes(implode('/', $path), static::class),
             static::class,

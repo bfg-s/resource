@@ -89,6 +89,9 @@ class Controller
      * Build requests for default resource data.
      * @param  BfgResource|string  $resource
      * @return mixed
+     * @throws AttemptToCheckBuilderException
+     * @throws PermissionDeniedException
+     * @throws \ReflectionException
      * @throws \Throwable
      */
     protected function buildDefaultResource(BfgResource|string $resource): mixed
@@ -103,6 +106,9 @@ class Controller
      * @param  BfgResource|string  $resource
      * @param $result
      * @return mixed
+     * @throws AttemptToCheckBuilderException
+     * @throws PermissionDeniedException
+     * @throws \ReflectionException
      * @throws \Throwable
      */
     protected function applyScopes(BfgResource|string $resource, $result): mixed
@@ -118,9 +124,12 @@ class Controller
 
     /**
      * @param  array  $callScopes
-     * @param BfgResource|string $resource
+     * @param  BfgResource|string  $resource
      * @param $result
      * @return mixed
+     * @throws AttemptToCheckBuilderException
+     * @throws PermissionDeniedException
+     * @throws \ReflectionException
      * @throws \Throwable
      */
     public static function callScopes(array $callScopes, BfgResource|string $resource, $result): mixed
@@ -165,8 +174,8 @@ class Controller
      * @param $callScope
      * @param  string|BfgResource  $resource
      * @param $resource_name
-     * @throws \ReflectionException
      * @throws PermissionDeniedException
+     * @throws \ReflectionException
      */
     public static function checkCanScope(\ReflectionClass $ref, $callScope, BfgResource|string $resource, $resource_name)
     {
@@ -228,7 +237,7 @@ class Controller
      * @param  string  $scope
      * @param  BfgResource|string  $resource
      * @return array
-     * @throws \Exception
+     * @throws UndefinedScopeException
      */
     public static function sortScopes(string $scope, BfgResource|string $resource): array
     {

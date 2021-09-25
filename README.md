@@ -243,7 +243,7 @@ The first parameter in `Scope` goes the current model that came either from the
 previous `scope` either the standard resource model that will try to determine 
 automatically depending on the name of the resource, or you must specify the 
 model in the `BfgResource::$model` parameter or override the 
-`public static function getDefaultResource(): mixed`.
+`public static function getResource(): mixed`.
 
 Now consider the `only` `scope`, where we accept all the parameters sequentially:
 ```php
@@ -260,10 +260,11 @@ Now consider the `only` `scope`, where we accept all the parameters sequentially
         $model,
         int $perPage = null,
         string $pageName = 'page',
-        int $page = null
+        int $page = null,
+        ...$columns
     ): \Illuminate\Contracts\Pagination\LengthAwarePaginator {
         /** @var Model $model */
-        return $model->paginate($perPage, ['*'], $pageName, $page);
+        return $model->paginate($perPage, $columns ?: ['*'], $pageName, $page);
     }
 ...
 ```
