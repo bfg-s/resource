@@ -92,6 +92,11 @@ DOC;
     {
         $model = $this->model();
 
+        $r = $this->option('route') ?
+            "use Bfg\Resource\Attributes\GetResource;\n":"";
+
+        $a = $r ? "\n#[GetResource]":"";
+
         if ($model) {
 
             $class = class_basename($model);
@@ -100,13 +105,15 @@ DOC;
 use $model;
 use Bfg\Resource\Traits\ModelScopesTrait;
 use Bfg\Resource\Traits\EloquentScopesTrait;
-
+{$r}
 /**
  * @mixin $class
- */
+ */{$a}
 DOC;
         }
-        return "\n";
+        return <<<DOC
+{$r}{$a}
+DOC;
     }
 
     protected function model()
@@ -138,6 +145,7 @@ DOC;
     {
         return [
             ['model', 'm', InputOption::VALUE_OPTIONAL, 'Create with the model'],
+            ['route', 'r', InputOption::VALUE_NONE, 'Create with route'],
             ['collection', 'c', InputOption::VALUE_NONE, 'Create a resource collection'],
         ];
     }

@@ -50,6 +50,12 @@ In order to create a resource, it is enough to use the standard Command:
 ```bash
 php artisan make:resource user
 ```
+I added some properties there:
+```bash
+-m, --model[=MODEL]   Create with the model
+-r, --route           Create with route
+-c, --collection      Create a resource collection
+```
 After execution, the `app/Http/Resources/UserResource.php` file will 
 be created with the following contents:
 ```php
