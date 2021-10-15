@@ -19,7 +19,8 @@ use Illuminate\Routing\Router;
      * @param  string  $user_field
      */
     public function __construct(
-        public string $local_field = "user_id",
-        public string $user_field = "id",
-    ) {}
+        public string $local_field = 'user_id',
+        public string $user_field = 'id',
+    ) {
+    }
 }

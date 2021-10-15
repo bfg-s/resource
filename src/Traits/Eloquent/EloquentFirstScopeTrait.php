@@ -2,8 +2,8 @@
 
 namespace Bfg\Resource\Traits\Eloquent;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 trait EloquentFirstScopeTrait
 {
@@ -20,7 +20,7 @@ trait EloquentFirstScopeTrait
     }
 
     /**
-     * The `options` request default
+     * The `options` request default.
      *
      * @param  Builder|Model  $result
      * @return Model|Builder|null

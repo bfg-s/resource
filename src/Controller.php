@@ -40,11 +40,12 @@ class Controller
             $result = $this->buildDefaultResource($resource);
         } catch (\Throwable $exception) {
             \Log::error($exception);
+
             return $this->buildException($exception);
         }
 
         if ($result instanceof Builder) {
-            $route_method = strtolower(request()->getMethod())."Method";
+            $route_method = strtolower(request()->getMethod()).'Method';
             if (method_exists($resource, $route_method)) {
                 $result = embedded_call([$resource, $route_method], [$result]);
             }
@@ -63,22 +64,24 @@ class Controller
         $code = $exception->getCode() && is_numeric($exception->getCode()) ? $exception->getCode() : 400;
 
         if (config('app.debug')) {
-            if (!($exception instanceof ResourceException)) {
+            if (! ($exception instanceof ResourceException)) {
                 return response()->json([
                     'status' => 'error',
                     'line' => $exception->getLine(),
                     'file' => $exception->getFile(),
                     'exception' => get_class($exception),
                     'message' => $exception->getMessage() ?: 'Bad Request',
-                    'trace' => $exception->getTrace()
+                    'trace' => $exception->getTrace(),
                 ], $code);
             }
+
             return response()->json([
                 'status' => 'error',
                 'exception' => get_class($exception),
                 'message' => $exception->getMessage(),
             ], $code);
         }
+
         return response()->json([
             'status' => 'error',
             'message' => 'Bad Request',
@@ -139,7 +142,7 @@ class Controller
         foreach ($callScopes as $callScope => $scopeParams) {
             $callScope = preg_replace("/[\d]+#(.*)/", '$1', $callScope);
             static::checkCanScope($ref, $callScope, $resource, $resource_name);
-            $call = fn($model) => static::scopeCaller($model, $callScope, $scopeParams, $resource, $ref);
+            $call = fn ($model) => static::scopeCaller($model, $callScope, $scopeParams, $resource, $ref);
             if ($result instanceof Collection) {
                 return $result->map($call);
             } else {
@@ -162,7 +165,7 @@ class Controller
      */
     protected static function user($resource): ?User
     {
-        if (!static::$user) {
+        if (! static::$user) {
             static::$user = \Auth::guard($resource::$guard)->user();
         }
 
@@ -180,13 +183,13 @@ class Controller
     public static function checkCanScope(\ReflectionClass $ref, $callScope, BfgResource|string $resource, $resource_name)
     {
         $method = $ref->getMethod($callScope);
-        $scope_name = str_replace("Scope", "", $callScope);
+        $scope_name = str_replace('Scope', '', $callScope);
         $cans = $method->getAttributes(CanScope::class, \ReflectionAttribute::IS_INSTANCEOF);
         foreach ($cans as $can) {
             $can = $can->newInstance();
             if (
-                !\Auth::guard($resource::$guard)->check() ||
-                !\Auth::guard($resource::$guard)->user()->can(
+                ! \Auth::guard($resource::$guard)->check() ||
+                ! \Auth::guard($resource::$guard)->user()->can(
                     $can->permission ?: $scope_name.'-'.$resource_name
                 )
             ) {
@@ -197,7 +200,7 @@ class Controller
     }
 
     /**
-     * For call scope method
+     * For call scope method.
      * @param $model
      * @param $callScope
      * @param $scopeParams
@@ -245,12 +248,12 @@ class Controller
         $scopes = explode('/', $scope);
         $route_method = ucfirst(strtolower(request()->getMethod()));
         foreach ($scopes as $key => $scope) {
-            $camel_scope = !is_numeric($scope) ? \Str::camel($scope) : null;
+            $camel_scope = ! is_numeric($scope) ? \Str::camel($scope) : null;
             $name_method = $camel_scope ? "{$camel_scope}{$route_method}Scope" : null;
-            if ($camel_scope && !method_exists($resource, $name_method)) {
+            if ($camel_scope && ! method_exists($resource, $name_method)) {
                 $name_method = "{$camel_scope}CollectionScope";
             }
-            if ($camel_scope && !method_exists($resource, $name_method)) {
+            if ($camel_scope && ! method_exists($resource, $name_method)) {
                 $name_method = "{$camel_scope}Scope";
             }
             if ($camel_scope && method_exists($resource, $name_method)) {

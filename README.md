@@ -93,6 +93,12 @@ Further, all we need is to fill out a resource map.
         'email',
         'phone',
         'photo',
+        // Variants
+        'avatar' => AvatarResource::class, // Use resource
+        'avatar' => [AvatarResource::class, 'photo'], // Path to field
+        'avatar' => [AvatarResource::class, 'photo.src'], // You can use a dot path, for relations an example
+        'avatar' => ['photo.src'], // Or just set a new path for field in array
+        'avatar' => 'photo.src', // Or in string
     ];
 ...
 ```

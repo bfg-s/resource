@@ -108,7 +108,7 @@ class BfgResource extends JsonResource
      */
     protected function user(): ?User
     {
-        if (!static::$user) {
+        if (! static::$user) {
             static::$user = \Auth::guard(static::$guard)->user();
         }
 
@@ -136,12 +136,12 @@ class BfgResource extends JsonResource
             if (preg_match('/\?/', $item)) {
                 $drop_if_null = true;
 
-                $item = str_replace("?", "", $item);
+                $item = str_replace('?', '', $item);
             }
 
             $add = true;
             if (array_key_exists($item, $check_fields)) {
-                if (!$this->user()->can(
+                if (! $this->user()->can(
                     $check_fields[$item] ?: $item.'-field-'.$resource_name
                 )) {
                     $add = false;
@@ -176,7 +176,7 @@ class BfgResource extends JsonResource
         $check_fields = [];
 
         if ($attributes || $attributes_user || $map_attributes) {
-            if (!$this->user()) {
+            if (! $this->user()) {
                 return null;
             }
         }
@@ -185,7 +185,7 @@ class BfgResource extends JsonResource
             foreach ($map_attributes as $attribute) {
                 $attribute = $attribute->newInstance();
                 /** @var CanResource $attribute */
-                if (!$this->user()->can(
+                if (! $this->user()->can(
                     $attribute->permission ?: $resource_name
                 )) {
                     return null;
@@ -275,7 +275,7 @@ class BfgResource extends JsonResource
             return $this->fields[$name];
         }
 
-        $resource_class = $this->map[$name] ?? null;
+        $resource_class = array_key_exists($name, $this->map) ? $this->map[$name] : null;
 
         $path = null;
 
@@ -301,8 +301,8 @@ class BfgResource extends JsonResource
             }
         }
 
-        if ($resource_class && !$path && is_string($resource_class)) {
-            if (!class_exists($resource_class)) {
+        if ($resource_class && ! $path && is_string($resource_class)) {
+            if (! class_exists($resource_class)) {
                 $path = $resource_class;
 
                 $resource_class = null;
@@ -329,7 +329,7 @@ class BfgResource extends JsonResource
             }
         } else {
             $resource_result = $this->resource ?
-                multi_dot_call($this->resource, $name ?: $path) : null;
+                multi_dot_call($this->resource, $path ?: $name) : null;
         }
 
         $camel_name = ucfirst(\Str::camel($name));
@@ -340,7 +340,7 @@ class BfgResource extends JsonResource
             $resource_result = $this->{$mutator_method}($resource_result);
         }
 
-        if (!isset($resource_result)) {
+        if (! isset($resource_result)) {
             $resource_result = null;
         }
 
@@ -348,10 +348,10 @@ class BfgResource extends JsonResource
             if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator) {
                 $this->fields[$name] = $resource_result = tap(new BfgResourceCollection($resource_result,
                     $resource_class), function ($collection) use ($resource_class) {
-                    if (property_exists($resource_class, 'preserveKeys')) {
-                        $collection->preserveKeys = (new static([]))->preserveKeys === true;
-                    }
-                });
+                        if (property_exists($resource_class, 'preserveKeys')) {
+                            $collection->preserveKeys = (new static([]))->preserveKeys === true;
+                        }
+                    });
             } elseif ($resource_result) {
                 $this->fields[$name] = $resource_result = new $resource_class($resource_result);
             }
@@ -359,7 +359,7 @@ class BfgResource extends JsonResource
             $this->fields[$name] = $resource_result = $this->fieldCasting($name, $resource_result);
         }
 
-        if ($relation_loaded && !isset($this->fields[$name]) && !$drop_if_null) {
+        if ($relation_loaded && ! isset($this->fields[$name]) && ! $drop_if_null) {
             $this->fields[$name] = $relation_collection ? [] : null;
         } elseif ($drop_if_null && array_key_exists($name, $this->fields) && is_null($this->fields[$name])) {
             unset($this->fields[$name]);
@@ -426,7 +426,7 @@ class BfgResource extends JsonResource
      */
     public function fromJson(?string $value, bool $asObject = false): mixed
     {
-        return json_decode($value, !$asObject);
+        return json_decode($value, ! $asObject);
     }
 
     /**
@@ -552,7 +552,7 @@ class BfgResource extends JsonResource
                 ? $value
                 : $caster->get($this, $key, $value, $this->fields);
 
-            if ($caster instanceof CastsInboundAttributes || !is_object($value)) {
+            if ($caster instanceof CastsInboundAttributes || ! is_object($value)) {
                 unset($this->classCastCache[$key]);
             } else {
                 $this->classCastCache[$key] = $value;
@@ -633,7 +633,6 @@ class BfgResource extends JsonResource
         $model = is_string($resource) ? app($resource) : $resource;
 
         if ($model instanceof Model) {
-
             $model = $model::query();
         }
 
@@ -655,6 +654,7 @@ class BfgResource extends JsonResource
                 return array_key_exists($key, $this->resource);
             }
         }
+
         return false;
     }
 
@@ -690,6 +690,7 @@ class BfgResource extends JsonResource
                 return $this->resource[$key];
             }
         }
+
         return null;
     }
 
@@ -709,6 +710,7 @@ class BfgResource extends JsonResource
                 return $this->resource[$method] instanceof \Closure ? $this->resource[$method](...$parameters) : null;
             }
         }
+
         return null;
     }
 }

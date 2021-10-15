@@ -32,6 +32,7 @@ trait EloquentWithScopeTrait
             foreach ($datum as $key => $item) {
                 static::recursiveWithCallNext($key, $q, $item);
             }
+
             return $q;
         }]);
     }
@@ -55,6 +56,7 @@ trait EloquentWithScopeTrait
                     foreach ($newDatum as $key => $item) {
                         static::recursiveWithCallNext($key, $q, $item);
                     }
+
                     return $q;
                 };
             } else {

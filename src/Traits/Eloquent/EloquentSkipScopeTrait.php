@@ -17,7 +17,6 @@ trait EloquentSkipScopeTrait
     public static function skipScope(Builder|Model $model, ...$ids): mixed
     {
         foreach ($ids as $id) {
-
             $model = $model->skip($id);
         }
 

@@ -2,9 +2,9 @@
 
 namespace Bfg\Resource\Traits;
 
+use Bfg\Resource\Traits\Eloquent\EloquentAllScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentFindScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentFirstScopeTrait;
-use Bfg\Resource\Traits\Eloquent\EloquentAllScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentForPageScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentLatestScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentLimitScopeTrait;

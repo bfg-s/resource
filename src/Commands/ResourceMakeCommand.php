@@ -47,7 +47,7 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
         $searches = [
             ['DummyDocBlock', 'DummyUses'],
             ['{{ doc_block }}', '{{ uses }}'],
-            ['{{doc_block}}'. '{{uses}}'],
+            ['{{doc_block}}'.'{{uses}}'],
         ];
 
         foreach ($searches as $search) {
@@ -69,12 +69,11 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
         $model = $this->model();
 
         if ($model) {
-
             $class = class_basename($model);
 
             $m = $this->option('model');
 
-            $t = $m ? "\n    public static \$model = $class::class;\n":"";
+            $t = $m ? "\n    public static \$model = $class::class;\n" : '';
 
             return <<<DOC
     
@@ -82,7 +81,8 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
 {$t}
 DOC;
         }
-        return "";
+
+        return '';
     }
 
     /**
@@ -93,12 +93,11 @@ DOC;
         $model = $this->model();
 
         $r = $this->option('route') ?
-            "use Bfg\Resource\Attributes\GetResource;\n":"";
+            "use Bfg\Resource\Attributes\GetResource;\n" : '';
 
-        $a = $r ? "\n#[GetResource]":"";
+        $a = $r ? "\n#[GetResource]" : '';
 
         if ($model) {
-
             $class = class_basename($model);
 
             return <<<DOC
@@ -111,6 +110,7 @@ use Bfg\Resource\Traits\EloquentScopesTrait;
  */{$a}
 DOC;
         }
+
         return <<<DOC
 {$r}{$a}
 DOC;
@@ -121,6 +121,7 @@ DOC;
         $m = $this->option('model') ? ucfirst(\Str::camel($this->option('model'))) : null;
         $n = ucfirst(\Str::camel(trim($this->argument('name'))));
         $name = preg_replace('/(.*)Resource$/', '$1', $n);
+
         return $m && class_exists("App\\Models\\{$m}") ? "App\\Models\\{$m}" :
             (class_exists("App\\Models\\{$name}") ? "App\\Models\\{$name}" : null);
     }
@@ -133,6 +134,7 @@ DOC;
     protected function getNameInput(): string
     {
         $n = ucfirst(\Str::camel(trim($this->argument('name'))));
+
         return preg_replace('/(.*)Resource$/', '$1', $n).'Resource';
     }
 

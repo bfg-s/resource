@@ -20,7 +20,7 @@ trait EloquentAllScopeTrait
     }
 
     /**
-     * The `get` request default
+     * The `get` request default.
      *
      * @param  Builder|Model  $result
      * @return \Illuminate\Support\Collection
