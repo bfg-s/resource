@@ -293,8 +293,8 @@ Development.
 #### EloquentAllScopeTrait
 Trait to add `scope` Receiving all records.
 ```url
-[GET] http://example.com/api/user/get
-[GET] http://example.com/api/user/[get]
+[GET] http://example.com/api/user/all
+[GET] http://example.com/api/user/[all]
 ```
 
 #### EloquentFindScopeTrait

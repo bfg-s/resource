@@ -12,6 +12,7 @@ use Bfg\Resource\Exceptions\UndefinedScopeException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 
 class Controller
 {
@@ -38,6 +39,8 @@ class Controller
 
         try {
             $result = $this->buildDefaultResource($resource);
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (\Throwable $exception) {
             \Log::error($exception);
 
