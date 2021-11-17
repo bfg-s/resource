@@ -64,12 +64,13 @@ class Controller
      */
     protected function buildException(\Throwable $exception): \Illuminate\Http\JsonResponse
     {
-        $code = $exception->getCode() && is_numeric($exception->getCode()) ? $exception->getCode() : 400;
+        $code = 400;
 
         if (config('app.debug')) {
             if (! ($exception instanceof ResourceException)) {
                 return response()->json([
                     'status' => 'error',
+                    'code' => $exception->getCode(),
                     'line' => $exception->getLine(),
                     'file' => $exception->getFile(),
                     'exception' => get_class($exception),
