@@ -766,6 +766,6 @@ class BfgResource extends JsonResource
      */
     public function nesting(): int
     {
-        return static::$created[$this::class] ?? 0;
+        return static::$created[$this::class];
     }
 }
