@@ -759,4 +759,14 @@ class BfgResource extends JsonResource
     {
         return static::$created[$this::class] === $needleNested;
     }
+
+    /**
+     * Get nested level
+     * @param  int  $needleNested
+     * @return bool
+     */
+    public function nesting(): int
+    {
+        return static::$created[$this::class] ?? 0;
+    }
 }
