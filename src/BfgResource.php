@@ -762,8 +762,7 @@ class BfgResource extends JsonResource
 
     /**
      * Get nested level
-     * @param  int  $needleNested
-     * @return bool
+     * @return int
      */
     public function nesting(): int
     {
