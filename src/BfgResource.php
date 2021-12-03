@@ -103,11 +103,18 @@ class BfgResource extends JsonResource
      */
     public function __construct($resource = null)
     {
+        if ($resource !== null) {
+            if (isset(static::$created[static::class])) {
+                static::$created[static::class] += 1;
+            } else {
+                static::$created[static::class] = 0;
+            }
+        }
+
         parent::__construct($resource);
 
         if ($resource !== null) {
             $this->clearMap();
-
             $this->generate();
         }
     }
@@ -248,11 +255,6 @@ class BfgResource extends JsonResource
         }
 
         if ($resource_class && $this->resource) {
-            if (isset(static::$created[$resource_class])) {
-                static::$created[$resource_class] += 1;
-            } else {
-                static::$created[$resource_class] = 0;
-            }
             if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator) {
                 $this->fields[$name] = $resource_result = tap(new BfgResourceCollection($resource_result,
                     $resource_class), function ($collection) use ($resource_class) {
