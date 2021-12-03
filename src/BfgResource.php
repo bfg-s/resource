@@ -44,6 +44,11 @@ class BfgResource extends JsonResource
     public static $user = null;
 
     /**
+     * @var int
+     */
+    public int $nesting = 0;
+
+    /**
      * Map of resource fields.
      * @var array
      */
@@ -345,15 +350,17 @@ class BfgResource extends JsonResource
         }
 
         if ($resource_class && $this->resource) {
+            $injectNested = fn (BfgResource $resource) => $resource->nesting = $this->nesting+1;
             if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator) {
                 $this->fields[$name] = $resource_result = tap(new BfgResourceCollection($resource_result,
-                    $resource_class), function ($collection) use ($resource_class) {
+                    $resource_class, $injectNested), function ($collection) use ($resource_class) {
                         if (property_exists($resource_class, 'preserveKeys')) {
                             $collection->preserveKeys = (new static([]))->preserveKeys === true;
                         }
                     });
             } elseif ($resource_result) {
                 $this->fields[$name] = $resource_result = new $resource_class($resource_result);
+                $injectNested($this->fields[$name]);
             }
         } else {
             $this->fields[$name] = $resource_result = $this->fieldCasting($name, $resource_result);
@@ -712,5 +719,37 @@ class BfgResource extends JsonResource
         }
 
         return null;
+    }
+
+    /**
+     * Helpers
+     */
+
+    /**
+     * Is root nested level
+     * @return bool
+     */
+    public function isRoot(): bool
+    {
+        return $this->nesting === 0;
+    }
+
+    /**
+     * Is child nested level
+     * @return bool
+     */
+    public function isChild(): bool
+    {
+        return $this->nesting > 0;
+    }
+
+    /**
+     * Is nested level equals needle nested
+     * @param  int  $needleNested
+     * @return bool
+     */
+    public function isNesting(int $needleNested): bool
+    {
+        return $this->nesting === $needleNested;
     }
 }

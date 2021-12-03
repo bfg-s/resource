@@ -20,11 +20,18 @@ class BfgResourceCollection extends ResourceCollection
      * @param  string  $collects
      * @return void
      */
-    public function __construct($resource, $collects)
+    public function __construct($resource, $collects, \Closure $each = null)
     {
         $this->collects = $collects;
 
         parent::__construct($resource);
+
+        if ($each) {
+            $this->collection = $this->collection->map(function ($i) use ($each) {
+                $each($i);
+                return $i;
+            });
+        }
     }
 
     /**
@@ -44,6 +51,8 @@ class BfgResourceCollection extends ResourceCollection
      */
     public function toFields()
     {
-        return $this->collection->map(fn ($i) => $i->toFields())->toArray();
+        return $this->collection
+            ->map(fn ($i) => $i->toFields())
+            ->toArray();
     }
 }
