@@ -14,7 +14,6 @@ use Illuminate\Contracts\Database\Eloquent\Castable;
 use Illuminate\Contracts\Database\Eloquent\CastsInboundAttributes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
@@ -42,6 +41,11 @@ class BfgResource extends JsonResource
      * @var User|null
      */
     public static $user = null;
+
+    /**
+     * @var array|string[]
+     */
+    public static array $created = [];
 
     /**
      * @var int
@@ -163,6 +167,116 @@ class BfgResource extends JsonResource
     }
 
     /**
+     * @param  string  $name
+     * @param  bool  $drop_if_null
+     * @return mixed
+     * @throws PermissionDeniedException
+     */
+    protected function generateField(string $name, bool $drop_if_null = false): mixed
+    {
+        if (isset($this->fields[$name])) {
+            return $this->fields[$name];
+        }
+
+        $resource_class = array_key_exists($name, $this->map) ? $this->map[$name] : null;
+
+        $path = null;
+
+        $paginate_params = null;
+
+        if (is_array($resource_class)) {
+            if (isset($resource_class['paginate']) && is_array($resource_class['paginate'])) {
+                $paginate_params = $resource_class['paginate'];
+
+                unset($resource_class['paginate']);
+
+                $resource_class = array_values($resource_class);
+            }
+
+            if (isset($resource_class[0]) && isset($resource_class[1])) {
+                $path = $resource_class[1];
+
+                $resource_class = $resource_class[0];
+            } elseif (isset($resource_class[0])) {
+                $path = $resource_class[0];
+            } else {
+                $resource_class = null;
+            }
+        }
+
+        if ($resource_class && ! $path && is_string($resource_class)) {
+            if (! class_exists($resource_class)) {
+                $path = $resource_class;
+
+                $resource_class = null;
+            }
+        }
+
+        $relation_loaded = false;
+
+        $relation_collection = false;
+
+        if ($resource_class && $this->resource instanceof Model) {
+            if ($this->resource->relationLoaded($name)) {
+                $resource_result = $this->resource->getRelation($name);
+
+                $relation_collection = $resource_result instanceof Collection;
+
+                $relation_loaded = true;
+            } elseif (is_array($paginate_params)) {
+                $rr = $this->resource->{$name}();
+
+                if ($rr instanceof Relation) {
+                    $resource_result = $rr->paginate(...$paginate_params);
+                }
+            }
+        } else {
+            $resource_result = $this->resource ?
+                multi_dot_call($this->resource, $path ?: $name) : null;
+        }
+
+        $camel_name = ucfirst(\Str::camel($name));
+
+        $mutator_method = "get{$camel_name}Field";
+
+        if (method_exists($this, $mutator_method)) {
+            $resource_result = $this->{$mutator_method}($resource_result);
+        }
+
+        if (! isset($resource_result)) {
+            $resource_result = null;
+        }
+
+        if ($resource_class && $this->resource) {
+            if (isset(static::$created[$resource_class::class])) {
+                static::$created[$resource_class::class] += 1;
+            } else {
+                static::$created[$resource_class::class] = 0;
+            }
+            if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator) {
+                $this->fields[$name] = $resource_result = tap(new BfgResourceCollection($resource_result,
+                    $resource_class), function ($collection) use ($resource_class) {
+                    if (property_exists($resource_class, 'preserveKeys')) {
+                        $collection->preserveKeys = (new static([]))->preserveKeys === true;
+                    }
+                });
+            } elseif ($resource_result) {
+                $this->fields[$name] = $resource_result = new $resource_class($resource_result);
+            }
+        } else {
+            $this->fields[$name] = $resource_result = $this->fieldCasting($name, $resource_result);
+        }
+
+        if ($relation_loaded && ! isset($this->fields[$name]) && ! $drop_if_null) {
+            $this->fields[$name] = $relation_collection ? [] : null;
+        } elseif ($drop_if_null && array_key_exists($name, $this->fields) && is_null($this->fields[$name])) {
+            unset($this->fields[$name]);
+        }
+
+        return $resource_result;
+    }
+
+    /**
      * @param $resource_name
      * @return array|null
      */
@@ -266,113 +380,6 @@ class BfgResource extends JsonResource
         }
 
         return $fields;
-    }
-
-    /**
-     * @param  string  $name
-     * @param  bool  $drop_if_null
-     * @return mixed
-     * @throws PermissionDeniedException
-     */
-    protected function generateField(string $name, bool $drop_if_null = false): mixed
-    {
-        if (isset($this->fields[$name])) {
-            return $this->fields[$name];
-        }
-
-        $resource_class = array_key_exists($name, $this->map) ? $this->map[$name] : null;
-
-        $path = null;
-
-        $paginate_params = null;
-
-        if (is_array($resource_class)) {
-            if (isset($resource_class['paginate']) && is_array($resource_class['paginate'])) {
-                $paginate_params = $resource_class['paginate'];
-
-                unset($resource_class['paginate']);
-
-                $resource_class = array_values($resource_class);
-            }
-
-            if (isset($resource_class[0]) && isset($resource_class[1])) {
-                $path = $resource_class[1];
-
-                $resource_class = $resource_class[0];
-            } elseif (isset($resource_class[0])) {
-                $path = $resource_class[0];
-            } else {
-                $resource_class = null;
-            }
-        }
-
-        if ($resource_class && ! $path && is_string($resource_class)) {
-            if (! class_exists($resource_class)) {
-                $path = $resource_class;
-
-                $resource_class = null;
-            }
-        }
-
-        $relation_loaded = false;
-
-        $relation_collection = false;
-
-        if ($resource_class && $this->resource instanceof Model) {
-            if ($this->resource->relationLoaded($name)) {
-                $resource_result = $this->resource->getRelation($name);
-
-                $relation_collection = $resource_result instanceof Collection;
-
-                $relation_loaded = true;
-            } elseif (is_array($paginate_params)) {
-                $rr = $this->resource->{$name}();
-
-                if ($rr instanceof Relation) {
-                    $resource_result = $rr->paginate(...$paginate_params);
-                }
-            }
-        } else {
-            $resource_result = $this->resource ?
-                multi_dot_call($this->resource, $path ?: $name) : null;
-        }
-
-        $camel_name = ucfirst(\Str::camel($name));
-
-        $mutator_method = "get{$camel_name}Field";
-
-        if (method_exists($this, $mutator_method)) {
-            $resource_result = $this->{$mutator_method}($resource_result);
-        }
-
-        if (! isset($resource_result)) {
-            $resource_result = null;
-        }
-
-        if ($resource_class && $this->resource) {
-            $injectNested = fn (BfgResource $resource) => $resource->nesting = $this->nesting+1;
-            if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator) {
-                $this->fields[$name] = $resource_result = tap(new BfgResourceCollection($resource_result,
-                    $resource_class, $injectNested), function ($collection) use ($resource_class) {
-                        if (property_exists($resource_class, 'preserveKeys')) {
-                            $collection->preserveKeys = (new static([]))->preserveKeys === true;
-                        }
-                    });
-            } elseif ($resource_result) {
-                $this->fields[$name] = $resource_result = new $resource_class($resource_result);
-                $injectNested($this->fields[$name]);
-            }
-        } else {
-            $this->fields[$name] = $resource_result = $this->fieldCasting($name, $resource_result);
-        }
-
-        if ($relation_loaded && ! isset($this->fields[$name]) && ! $drop_if_null) {
-            $this->fields[$name] = $relation_collection ? [] : null;
-        } elseif ($drop_if_null && array_key_exists($name, $this->fields) && is_null($this->fields[$name])) {
-            unset($this->fields[$name]);
-        }
-
-        return $resource_result;
     }
 
     /**
@@ -729,9 +736,9 @@ class BfgResource extends JsonResource
      * Is root nested level
      * @return bool
      */
-    public function isRoot(): bool
+    public function isPrent(): bool
     {
-        return $this->nesting === 0;
+        return static::$created[$this::class] === 0;
     }
 
     /**
@@ -740,7 +747,7 @@ class BfgResource extends JsonResource
      */
     public function isChild(): bool
     {
-        return $this->nesting > 0;
+        return static::$created[$this::class] > 0;
     }
 
     /**
@@ -750,6 +757,6 @@ class BfgResource extends JsonResource
      */
     public function isNesting(int $needleNested): bool
     {
-        return $this->nesting === $needleNested;
+        return static::$created[$this::class] === $needleNested;
     }
 }
