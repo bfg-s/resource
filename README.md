@@ -128,6 +128,20 @@ and their functionality is absolutely identical (except for the `set` of custom 
 ...
 ```
 
+## Extending (Re-use)
+Combines the results of resource fields. 
+Performed before the main resource for redefining the parent.
+> Important! Common resources should work with one model.
+```php
+...
+    protected array $extends = [
+        UserResource::class => ['id', 'name'], // Insert only id and name fields
+        UserDetailsResource::class => 'phone', // Insert only phone field
+        UserCommentResource::class, // Inserted all fields
+    ];
+...
+```
+
 ## Routing
 To use resources as API Controllers, I recommend that you use 
 [Laravel Fortify](https://laravel.com/docs/8.x/fortify) or 
@@ -481,6 +495,23 @@ Will check `resource->local_field == auth->user->user_field`.
 
 If the policy does not fit, it is simply not present in 
 the overall list, but reserved in the collection.
+
+## PHP api
+To create one instance:
+```php
+UserResource::make(User::first(), array $only = []);
+// Only - To limit generated fields.
+```
+To create a collection of instances:
+```php
+UserResource::collection(User::get());
+```
+Method for autodetect and create instance for collection or single resource:
+```php
+UserResource::create(User::first()): static;
+// or
+UserResource::create(User::get()): BfgResourceCollection;
+```
 
 ## PHP Class scope api
 To call `scope` In` PHP`, you can use the static constructor:

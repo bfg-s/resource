@@ -8,23 +8,19 @@ use Bfg\Resource\Attributes\CanResource;
 use Bfg\Resource\Attributes\CanUser;
 use Bfg\Resource\Exceptions\PermissionDeniedException;
 use Bfg\Resource\Traits\ResourceClassApiTrait;
+use Bfg\Resource\Traits\ResourceInitializations;
 use Bfg\Resource\Traits\ResourceRoutingTrait;
-use Carbon\CarbonInterface;
-use Illuminate\Contracts\Database\Eloquent\Castable;
-use Illuminate\Contracts\Database\Eloquent\CastsInboundAttributes;
+use Bfg\Resource\Traits\ResourceCasting;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Collection as BaseCollection;
-use Illuminate\Support\Facades\Date;
 
-class BfgResource extends JsonResource
+abstract class BfgResource extends JsonResource
 {
     use ResourceRoutingTrait,
-        ResourceClassApiTrait;
+        ResourceClassApiTrait,
+        ResourceCasting,
+        ResourceInitializations;
 
     /**
      * The default resource.
@@ -98,10 +94,18 @@ class BfgResource extends JsonResource
     protected bool $temporal_all = false;
 
     /**
-     * @param $resource
+     * Combines the results of resource fields.
+     * Performed before the main resource for redefining the parent.
+     * @var array
+     */
+    protected array $extends = [];
+
+    /**
+     * @param  null  $resource
+     * @param  array  $only More is needed for embedded resource extensions.
      * @throws PermissionDeniedException
      */
-    public function __construct($resource = null)
+    public function __construct($resource = null, array $only = [])
     {
         if ($resource !== null) {
             if (isset(static::$created[static::class])) {
@@ -115,7 +119,8 @@ class BfgResource extends JsonResource
 
         if ($resource !== null) {
             $this->clearMap();
-            $this->generate();
+            $this->applyExtends();
+            $this->generate($only);
         }
     }
 
@@ -129,153 +134,6 @@ class BfgResource extends JsonResource
         }
 
         return static::$user;
-    }
-
-    /**
-     * Generate all fields.
-     * @return array|void
-     * @throws PermissionDeniedException
-     */
-    protected function generate()
-    {
-        $resource_name = \Str::snake(str_replace('Resource', '', class_basename(static::class)));
-
-        $check_fields = $this->accessCheck($resource_name);
-
-        if ($check_fields === null) {
-            return [];
-        }
-
-        foreach (array_keys($this->map) as $item) {
-            $drop_if_null = false;
-
-            if (preg_match('/\?/', $item)) {
-                $drop_if_null = true;
-
-                $item = str_replace('?', '', $item);
-            }
-
-            $add = true;
-            if (array_key_exists($item, $check_fields)) {
-                if (! $this->user()->can(
-                    $check_fields[$item] ?: $item.'-field-'.$resource_name
-                )) {
-                    $add = false;
-                }
-            }
-            if ($add) {
-                $this->generateField(
-                    $item,
-                    array_key_exists($item, $this->temporal) || in_array($item,
-                        $this->temporal) || $drop_if_null || $this->temporal_all
-                );
-            }
-        }
-    }
-
-    /**
-     * @param  string  $name
-     * @param  bool  $drop_if_null
-     * @return mixed
-     * @throws PermissionDeniedException
-     */
-    protected function generateField(string $name, bool $drop_if_null = false): mixed
-    {
-        if (isset($this->fields[$name])) {
-            return $this->fields[$name];
-        }
-
-        $resource_class = array_key_exists($name, $this->map) ? $this->map[$name] : null;
-
-        $path = null;
-
-        $paginate_params = null;
-
-        if (is_array($resource_class)) {
-            if (isset($resource_class['paginate']) && is_array($resource_class['paginate'])) {
-                $paginate_params = $resource_class['paginate'];
-
-                unset($resource_class['paginate']);
-
-                $resource_class = array_values($resource_class);
-            }
-
-            if (isset($resource_class[0]) && isset($resource_class[1])) {
-                $path = $resource_class[1];
-
-                $resource_class = $resource_class[0];
-            } elseif (isset($resource_class[0])) {
-                $path = $resource_class[0];
-            } else {
-                $resource_class = null;
-            }
-        }
-
-        if ($resource_class && ! $path && is_string($resource_class)) {
-            if (! class_exists($resource_class)) {
-                $path = $resource_class;
-
-                $resource_class = null;
-            }
-        }
-
-        $relation_loaded = false;
-
-        $relation_collection = false;
-
-        if ($resource_class && $this->resource instanceof Model) {
-            if ($this->resource->relationLoaded($name)) {
-                $resource_result = $this->resource->getRelation($name);
-
-                $relation_collection = $resource_result instanceof Collection;
-
-                $relation_loaded = true;
-            } elseif (is_array($paginate_params)) {
-                $rr = $this->resource->{$name}();
-
-                if ($rr instanceof Relation) {
-                    $resource_result = $rr->paginate(...$paginate_params);
-                }
-            }
-        } else {
-            $resource_result = $this->resource ?
-                multi_dot_call($this->resource, $path ?: $name) : null;
-        }
-
-        $camel_name = ucfirst(\Str::camel($name));
-
-        $mutator_method = "get{$camel_name}Field";
-
-        if (method_exists($this, $mutator_method)) {
-            $resource_result = $this->{$mutator_method}($resource_result);
-        }
-
-        if (! isset($resource_result)) {
-            $resource_result = null;
-        }
-
-        if ($resource_class && $this->resource) {
-            if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator) {
-                $this->fields[$name] = $resource_result = tap(new BfgResourceCollection($resource_result,
-                    $resource_class), function ($collection) use ($resource_class) {
-                    if (property_exists($resource_class, 'preserveKeys')) {
-                        $collection->preserveKeys = (new static([]))->preserveKeys === true;
-                    }
-                });
-            } elseif ($resource_result) {
-                $this->fields[$name] = $resource_result = new $resource_class($resource_result);
-            }
-        } else {
-            $this->fields[$name] = $resource_result = $this->fieldCasting($name, $resource_result);
-        }
-
-        if ($relation_loaded && ! isset($this->fields[$name]) && ! $drop_if_null) {
-            $this->fields[$name] = $relation_collection ? [] : null;
-        } elseif ($drop_if_null && array_key_exists($name, $this->fields) && is_null($this->fields[$name])) {
-            unset($this->fields[$name]);
-        }
-
-        return $resource_result;
     }
 
     /**
@@ -338,24 +196,6 @@ class BfgResource extends JsonResource
     }
 
     /**
-     * Make pretty map for generator.
-     */
-    protected function clearMap()
-    {
-        $newMap = [];
-
-        foreach ($this->map as $key => $item) {
-            if (is_numeric($key)) {
-                $newMap[$item] = null;
-            } else {
-                $newMap[$key] = $item;
-            }
-        }
-
-        $this->map = $newMap;
-    }
-
-    /**
      * @param  \Illuminate\Http\Request  $request
      * @return array
      */
@@ -385,230 +225,6 @@ class BfgResource extends JsonResource
     }
 
     /**
-     * @param  string  $name
-     * @param $value
-     * @return mixed
-     */
-    protected function fieldCasting(string $name, $value): mixed
-    {
-        if (isset($this->casts[$name])) {
-            $castType = $this->casts[$name];
-
-            switch ($castType) {
-                case 'int':
-                case 'integer':
-                    return (int) $value;
-                case 'real':
-                case 'float':
-                case 'double':
-                    return $this->fromFloat($value);
-                case 'decimal':
-                    return $this->asDecimal($value, explode(':', $this->casts[$name], 2)[1]);
-                case 'string':
-                    return (string) $value;
-                case 'bool':
-                case 'boolean':
-                    return (bool) $value;
-                case 'object':
-                    return $this->fromJson($value, true);
-                case 'array':
-                case 'json':
-                    return $this->fromJson($value);
-                case 'collection':
-                    return new BaseCollection($this->fromJson($value));
-                case 'date':
-                    return $this->asDate($value);
-                case 'datetime':
-                case 'custom_datetime':
-                    return $this->asDateTime($value);
-                case 'timestamp':
-                    return $this->asTimestamp($value);
-            }
-
-            if (is_string($castType) && class_exists($castType)) {
-                return $this->getClassCastableAttributeValue($name, $value);
-            }
-        }
-
-        return $value;
-    }
-
-    /**
-     * Decode the given JSON back into an array or object.
-     *
-     * @param  string|null  $value
-     * @param  bool  $asObject
-     * @return mixed
-     */
-    public function fromJson(?string $value, bool $asObject = false): mixed
-    {
-        return json_decode($value, ! $asObject);
-    }
-
-    /**
-     * Decode the given float.
-     *
-     * @param  mixed  $value
-     * @return int|float
-     */
-    public function fromFloat(mixed $value): int|float
-    {
-        return match ((string) $value) {
-            'Infinity' => INF,
-            '-Infinity' => -INF,
-            'NaN' => NAN,
-            default => (float) $value,
-        };
-    }
-
-    /**
-     * Return a decimal as string.
-     *
-     * @param  float|string  $value
-     * @param  int  $decimals
-     * @return string
-     */
-    protected function asDecimal(float|string $value, int $decimals): string
-    {
-        return number_format($value, $decimals, '.', '');
-    }
-
-    /**
-     * Return a timestamp as DateTime object with time set to 00:00:00.
-     *
-     * @param  mixed  $value
-     * @return \Illuminate\Support\Carbon
-     */
-    protected function asDate(mixed $value): Carbon
-    {
-        return $this->asDateTime($value)->startOfDay();
-    }
-
-    /**
-     * Return a timestamp as DateTime object.
-     *
-     * @param  mixed  $value
-     * @return bool|Carbon
-     */
-    protected function asDateTime(mixed $value): bool|Carbon
-    {
-        // If this value is already a Carbon instance, we shall just return it as is.
-        // This prevents us having to re-instantiate a Carbon instance when we know
-        // it already is one, which wouldn't be fulfilled by the DateTime check.
-        if ($value instanceof CarbonInterface) {
-            return Date::instance($value);
-        }
-
-        // If the value is already a DateTime instance, we will just skip the rest of
-        // these checks since they will be a waste of time, and hinder performance
-        // when checking the field. We will just return the DateTime right away.
-        if ($value instanceof \DateTimeInterface) {
-            return Date::parse(
-                $value->format('Y-m-d H:i:s.u'), $value->getTimezone()
-            );
-        }
-
-        // If this value is an integer, we will assume it is a UNIX timestamp's value
-        // and format a Carbon object from this timestamp. This allows flexibility
-        // when defining your date fields as they might be UNIX timestamps here.
-        if (is_numeric($value)) {
-            return Date::createFromTimestamp($value);
-        }
-
-        $format = $this->getDateFormat();
-
-        // Finally, we will just assume this date is in the format used by default on
-        // the database connection and use that format to create the Carbon object
-        // that is returned back out to the developers after we convert it here.
-        try {
-            $date = Date::createFromFormat($format, $value);
-        } catch (\InvalidArgumentException $e) {
-            $date = false;
-        }
-
-        return $date ?: Date::parse($value);
-    }
-
-    /**
-     * Get the format for database stored dates.
-     *
-     * @return string
-     */
-    public function getDateFormat(): string
-    {
-        return $this->dateFormat;
-    }
-
-    /**
-     * Return a timestamp as unix timestamp.
-     *
-     * @param  mixed  $value
-     * @return int
-     */
-    protected function asTimestamp(mixed $value): int
-    {
-        return $this->asDateTime($value)->getTimestamp();
-    }
-
-    /**
-     * Cast the given attribute using a custom cast class.
-     *
-     * @param  string  $key
-     * @param  mixed  $value
-     * @return mixed
-     */
-    protected function getClassCastableAttributeValue(string $key, mixed $value): mixed
-    {
-        if (isset($this->classCastCache[$key])) {
-            return $this->classCastCache[$key];
-        } else {
-            $caster = $this->resolveCasterClass($key);
-
-            $value = $caster instanceof CastsInboundAttributes
-                ? $value
-                : $caster->get($this, $key, $value, $this->fields);
-
-            if ($caster instanceof CastsInboundAttributes || ! is_object($value)) {
-                unset($this->classCastCache[$key]);
-            } else {
-                $this->classCastCache[$key] = $value;
-            }
-
-            return $value;
-        }
-    }
-
-    /**
-     * Resolve the custom caster class for a given key.
-     *
-     * @param  string  $key
-     * @return mixed
-     */
-    protected function resolveCasterClass(string $key): mixed
-    {
-        $castType = $this->casts[$key];
-
-        $arguments = [];
-
-        if (is_string($castType) && str_contains($castType, ':')) {
-            $segments = explode(':', $castType, 2);
-
-            $castType = $segments[0];
-            $arguments = explode(',', $segments[1]);
-        }
-
-        if (is_subclass_of($castType, Castable::class)) {
-            $castType = $castType::castUsing($arguments);
-        }
-
-        if (is_object($castType)) {
-            return $castType;
-        }
-
-        return new $castType(...$arguments);
-    }
-
-    /**
      * Create a new anonymous resource collection.
      *
      * @param  mixed  $resource
@@ -622,6 +238,32 @@ class BfgResource extends JsonResource
                 $collection->preserveKeys = (new static([]))->preserveKeys === true;
             }
         });
+    }
+
+    /**
+     * Create a new resource instance.
+     *
+     * @param  mixed  ...$parameters
+     * @return static
+     * @throws PermissionDeniedException
+     */
+    public static function make(...$parameters): static
+    {
+        return new static(...$parameters);
+    }
+
+    /**
+     * Method for autodetect and create instance for collection or single resource.
+     * @param $resource
+     * @return BfgResourceCollection|static
+     * @throws PermissionDeniedException
+     */
+    public static function create($resource): BfgResourceCollection|static
+    {
+        if ($resource instanceof Collection || (is_array($resource) && !is_assoc($resource))) {
+            return static::collection($resource);
+        }
+        return static::make($resource);
     }
 
     public static function getResource(): mixed

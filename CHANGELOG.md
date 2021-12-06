@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.5] - 2021-11-06
+## Added
+- Ability to expand.
+- `only` fields, for getting need fields.
+- `create` method that allows you to create resources that will determine on your own, a collection or a single instance.
+
 ## [1.0.4] - 2021-11-03
 ### Added
 - Accounting nesting.
