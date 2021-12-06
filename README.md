@@ -512,6 +512,14 @@ UserResource::create(User::first()): static;
 UserResource::create(User::get()): BfgResourceCollection;
 ```
 
+### Inside helpers
+- `isPrent()` - Is root nested level.
+- `isChild()` - Is child nested level.
+- `isNesting(int $needleNested)` - Is nested level equals needle nested.
+- `isCollected()` - If the process is a challenge of this resource from the collection.
+- `nesting()` - Get nested level.
+
+
 ## PHP Class scope api
 To call `scope` In` PHP`, you can use the static constructor:
 ```php
