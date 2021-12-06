@@ -6,11 +6,12 @@ All notable changes to this project will be documented in this file.
 - Ability to expand.
 - `only` fields, for getting need fields.
 - `create` method that allows you to create resources that will determine on your own, a collection or a single instance.
+- Helper method `isCollected` - If the process is a challenge of this resource from the collection.
 
 ## [1.0.4] - 2021-11-03
 ### Added
 - Accounting nesting.
-- Helper nesting methods: `isPrent`, `isChild`, `isNesting`, `nesting`
+- Helper nesting methods: `isPrent`, `isChild`, `isNesting(int $needleNested)`, `nesting`
 
 ## [1.0.0] - 2021-09-24
 ### Added

@@ -413,6 +413,15 @@ abstract class BfgResource extends JsonResource
     }
 
     /**
+     * If the process is a challenge of this resource from the collection.
+     * @return bool
+     */
+    public function isCollected(): bool
+    {
+        return $this->index !== null;
+    }
+
+    /**
      * Get nested level
      * @return int
      */
