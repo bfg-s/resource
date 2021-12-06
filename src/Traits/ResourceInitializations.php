@@ -22,7 +22,7 @@ trait ResourceInitializations
         foreach ($this->extends as $class => $only) {
             $numeric = is_numeric($class);
             $class = $numeric ? $only : $class;
-            $only = $numeric ? [] : (array)((string)$only);
+            $only = $numeric ? [] : (array)$only;
             if (class_exists($class)) {
                 $resourceInstance = new $class($this->resource, 0, $only);
                 if ($resourceInstance instanceof BfgResource) {
