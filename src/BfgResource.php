@@ -49,6 +49,11 @@ abstract class BfgResource extends JsonResource
     public int $nesting = 0;
 
     /**
+     * @var int|null
+     */
+    public ?int $index = null;
+
+    /**
      * Map of resource fields.
      * @var array
      */
@@ -102,11 +107,14 @@ abstract class BfgResource extends JsonResource
 
     /**
      * @param  null  $resource
+     * @param  int|null  $index
      * @param  array  $only More is needed for embedded resource extensions.
      * @throws PermissionDeniedException
      */
-    public function __construct($resource = null, int $index = 0, array $only = [])
+    public function __construct($resource = null, ?int $index = null, array $only = [])
     {
+        $this->index = $index;
+
         if ($resource !== null) {
             if (isset(static::$created[static::class])) {
                 static::$created[static::class] += 1;
