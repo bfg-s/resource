@@ -5,6 +5,7 @@ namespace Bfg\Resource\Traits;
 use Bfg\Resource\BfgResource;
 use Bfg\Resource\BfgResourceCollection;
 use Bfg\Resource\Exceptions\PermissionDeniedException;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -28,6 +29,10 @@ trait ResourceInitializations
                     $this->fields = array_merge($this->fields, $resourceInstance->toFields());
                 } else if ($resourceInstance instanceof JsonResource) {
                     $this->fields = array_merge($this->fields, $resourceInstance->toArray(request()));
+                } else if ($resourceInstance instanceof Collection) {
+                    $this->fields = array_merge($this->fields, $resourceInstance->all());
+                } else if ($resourceInstance instanceof Arrayable) {
+                    $this->fields = array_merge($this->fields, $resourceInstance->toArray());
                 }
             }
         }
