@@ -7,6 +7,7 @@ use Bfg\Resource\BfgResourceCollection;
 use Bfg\Resource\Exceptions\PermissionDeniedException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
@@ -25,6 +26,8 @@ trait ResourceInitializations
                 $resourceInstance = new $class($this->resource, 0, $only);
                 if ($resourceInstance instanceof BfgResource) {
                     $this->fields = array_merge($this->fields, $resourceInstance->toFields());
+                } else if ($resourceInstance instanceof JsonResource) {
+                    $this->fields = array_merge($this->fields, $resourceInstance->toArray(request()));
                 }
             }
         }
