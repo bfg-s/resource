@@ -499,8 +499,7 @@ the overall list, but reserved in the collection.
 ## PHP api
 To create one instance:
 ```php
-UserResource::make(User::first(), array $only = []);
-// Only - To limit generated fields.
+UserResource::make(User::first());
 ```
 To create a collection of instances:
 ```php

@@ -22,7 +22,7 @@ trait ResourceInitializations
             $class = $numeric ? $only : $class;
             $only = $numeric ? [] : (array)((string)$only);
             if (class_exists($class)) {
-                $resourceInstance = new $class($this->resource, $only);
+                $resourceInstance = new $class($this->resource, 0, $only);
                 if ($resourceInstance instanceof BfgResource) {
                     $this->fields = array_merge($this->fields, $resourceInstance->toFields());
                 }

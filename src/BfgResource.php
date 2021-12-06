@@ -105,7 +105,7 @@ abstract class BfgResource extends JsonResource
      * @param  array  $only More is needed for embedded resource extensions.
      * @throws PermissionDeniedException
      */
-    public function __construct($resource = null, array $only = [])
+    public function __construct($resource = null, int $index = 0, array $only = [])
     {
         if ($resource !== null) {
             if (isset(static::$created[static::class])) {
