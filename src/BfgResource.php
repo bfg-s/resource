@@ -11,6 +11,7 @@ use Bfg\Resource\Traits\ResourceClassApiTrait;
 use Bfg\Resource\Traits\ResourceInitializations;
 use Bfg\Resource\Traits\ResourceRoutingTrait;
 use Bfg\Resource\Traits\ResourceCasting;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
@@ -268,7 +269,11 @@ abstract class BfgResource extends JsonResource
      */
     public static function create($resource): BfgResourceCollection|static
     {
-        if ($resource instanceof Collection || (is_array($resource) && !is_assoc($resource))) {
+        if (
+            $resource instanceof Collection
+            || $resource instanceof LengthAwarePaginator
+            || (is_array($resource) && !is_assoc($resource))
+        ) {
             return static::collection($resource);
         }
         return static::make($resource);
