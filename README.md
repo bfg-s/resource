@@ -34,17 +34,6 @@ This package is intended only in order to make an add-in over the framework Lara
 With the full use of the package, it is rapidly back and efficiently implement a 
 resistant API resource for models and not only.
 
-## Bfg Installer
-After installation, the package considers it as installed and applies 
-it immediately. Disable all package superstars can be disabled through 
-it in the `bfg/installer` package.
-
-## Command disable
-Disabling the redefinition of the standard resource generator.
-```bash
-php artisan uninstall bfg/resource
-```
-
 ## Create new resource
 In order to create a resource, it is enough to use the standard Command:
 ```bash

@@ -12,7 +12,6 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.0.0",
-        "bfg/installer": "*",
         "bfg/permission": "*",
         "bfg/embedded-call": "*",
         "bfg/object": "*",

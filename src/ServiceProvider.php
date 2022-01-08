@@ -2,9 +2,7 @@
 
 namespace Bfg\Resource;
 
-use Bfg\Installer\Providers\InstalledProvider;
 use Bfg\Resource\Commands\ResourceMakeCommand;
-use Laravel\Sanctum\Sanctum;
 use Laravel\Sanctum\SanctumServiceProvider;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
