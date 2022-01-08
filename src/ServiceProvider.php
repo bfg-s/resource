@@ -6,25 +6,20 @@ use Bfg\Installer\Providers\InstalledProvider;
 use Bfg\Resource\Commands\ResourceMakeCommand;
 use Laravel\Sanctum\Sanctum;
 use Laravel\Sanctum\SanctumServiceProvider;
+use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 
 /**
  * Class ServiceProvider.
  * @package Bfg\Resource
  */
-class ServiceProvider extends InstalledProvider
+class ServiceProvider extends IlluminateServiceProvider
 {
     /**
-     * Set as installed by default.
-     * @var bool
-     */
-    public bool $installed = true;
-
-    /**
-     * Executed when the provider is registered
-     * and the extension is installed.
+     * Register route settings.
      * @return void
+     * @throws \ReflectionException
      */
-    public function installed(): void
+    public function register()
     {
         $this->app->extend('command.resource.make', function ($app) {
             return new ResourceMakeCommand(app('files'));
@@ -38,15 +33,5 @@ class ServiceProvider extends InstalledProvider
     protected function sanctum()
     {
         config(['auth.guards.api.driver' => 'sanctum']);
-    }
-
-    /**
-     * Executed when the provider run method
-     * "boot" and the extension is installed.
-     * @return void
-     */
-    public function run(): void
-    {
-        //
     }
 }

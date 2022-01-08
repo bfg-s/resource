@@ -157,11 +157,13 @@ trait ResourceInitializations
         if ($resource_class && $this->resource instanceof Model) {
             if ($this->resource->relationLoaded($name)) {
                 $resource_result = $this->resource->getRelation($name);
-
                 $relation_collection = $resource_result instanceof Collection;
-
                 $relation_loaded = true;
-            } elseif (is_array($paginate_params)) {
+            } else if ($this->resource->relationLoaded($path)) {
+                $resource_result = $this->resource->getRelation($path);
+                $relation_collection = $resource_result instanceof Collection;
+                $relation_loaded = true;
+            } else if (is_array($paginate_params)) {
                 $rr = $this->resource->{$name}();
 
                 if ($rr instanceof Relation) {
