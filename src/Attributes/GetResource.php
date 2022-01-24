@@ -30,7 +30,7 @@ class GetResource extends Invokable
             name: $name,
             responsible: 'routeAction',
             middleware: $middleware,
-            where: ['scope', "^[a-zA-Z][a-zA-Z0-9\\_\\/\\-\*\=\!\>\<]*$"]
+            where: ['scope', "^[a-zA-Z0-9\\_\\/\\-\*\=\!\>\<]*$"]
         );
     }
 
