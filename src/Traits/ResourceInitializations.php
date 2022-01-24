@@ -180,7 +180,7 @@ trait ResourceInitializations
         $mutator_method = "get{$camel_name}Field";
 
         if (method_exists($this, $mutator_method)) {
-            $resource_result = $this->{$mutator_method}($resource_result);
+            $resource_result = $this->{$mutator_method}($resource_result ?? null);
         }
 
         if (! isset($resource_result)) {
