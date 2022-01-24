@@ -152,6 +152,8 @@ trait ResourceInitializations
 
         $relation_loaded = false;
 
+        $off_mutators = false;
+
         $relation_collection = false;
 
         if ($resource_class && $this->resource instanceof Model) {
@@ -169,6 +171,8 @@ trait ResourceInitializations
                 if ($rr instanceof Relation) {
                     $resource_result = $rr->paginate(...$paginate_params);
                 }
+            } else {
+                $off_mutators = true;
             }
         } else {
             $resource_result = $this->resource ?
@@ -179,8 +183,8 @@ trait ResourceInitializations
 
         $mutator_method = "get{$camel_name}Field";
 
-        if (method_exists($this, $mutator_method)) {
-            $resource_result = $this->{$mutator_method}($resource_result ?? null);
+        if (method_exists($this, $mutator_method) && !$off_mutators) {
+            $resource_result = $this->{$mutator_method}($resource_result??null);
         }
 
         if (! isset($resource_result)) {
