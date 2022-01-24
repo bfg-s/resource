@@ -120,12 +120,19 @@ class Controller
      */
     protected function applyScopes(BfgResource|string $resource, $result): mixed
     {
+        $sortedScopes = $this->scope ? static::sortScopes($this->scope, $resource) : [];
         if (method_exists($resource, 'globalScope')) {
-            $result = embedded_call([$resource, 'globalScope'], [$result]);
+            $result = embedded_call([$resource, 'globalScope'], [
+                $result, \Arr::last($sortedScopes['globalScope'])
+            ]);
+        }
+
+        if (!count($sortedScopes)) {
+            throw new UndefinedScopeException('any');
         }
 
         return $this->scope ? static::callScopes(
-            static::sortScopes($this->scope, $resource), $resource, $result
+            $sortedScopes, $resource, $result
         ) : $result;
     }
 
@@ -263,8 +270,11 @@ class Controller
             if ($camel_scope && method_exists($resource, $name_method)) {
                 $callScopes["{$key}#".$name_method] = [];
             } else {
+                $routeRealParam = route_real_param($scope);
                 if (count($callScopes)) {
-                    $callScopes[array_key_last($callScopes)][] = route_real_param($scope);
+                    $callScopes[array_key_last($callScopes)][] = $routeRealParam;
+                } else if ($routeRealParam) {
+                    $callScopes['globalScope'][] = $routeRealParam;
                 } else {
                     throw new UndefinedScopeException($scope);
                 }
