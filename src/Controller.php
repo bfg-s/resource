@@ -123,7 +123,7 @@ class Controller
         $sortedScopes = $this->scope ? static::sortScopes($this->scope, $resource) : [];
         if (method_exists($resource, 'globalScope')) {
             $result = embedded_call([$resource, 'globalScope'], [
-                $result, \Arr::last($sortedScopes['globalScope'])
+                $result, \Arr::last($sortedScopes['globalScope']??[])
             ]);
         }
 
