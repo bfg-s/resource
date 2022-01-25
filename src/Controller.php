@@ -127,7 +127,7 @@ class Controller
             ]);
         }
 
-        if (!count($sortedScopes)) {
+        if (!count($sortedScopes) && !$result) {
             throw new UndefinedScopeException('any');
         }
 
