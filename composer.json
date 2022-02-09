@@ -12,10 +12,7 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.0.0",
-        "bfg/permission": "*",
-        "bfg/embedded-call": "*",
-        "bfg/object": "*",
-        "bfg/route": "*"
+        "bfg/embedded-call": "*"
     },
     "require-dev": {},
     "autoload": {
