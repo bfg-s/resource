@@ -3,6 +3,7 @@
 namespace Bfg\Resource\Commands;
 
 use Illuminate\Foundation\Console\ResourceMakeCommand as IlluminateResourceMakeCommand;
+use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 
 class ResourceMakeCommand extends IlluminateResourceMakeCommand
@@ -76,7 +77,7 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
             $t = $m ? "\n    public static \$model = $class::class;\n" : '';
 
             return <<<DOC
-    
+
     use EloquentScopesTrait, ModelScopesTrait;
 {$t}
 DOC;
@@ -118,8 +119,8 @@ DOC;
 
     protected function model()
     {
-        $m = $this->option('model') ? ucfirst(\Str::camel($this->option('model'))) : null;
-        $n = ucfirst(\Str::camel(trim($this->argument('name'))));
+        $m = $this->option('model') ? ucfirst(Str::camel($this->option('model'))) : null;
+        $n = ucfirst(Str::camel(trim($this->argument('name'))));
         $name = preg_replace('/(.*)Resource$/', '$1', $n);
 
         return $m && class_exists("App\\Models\\{$m}") ? "App\\Models\\{$m}" :
@@ -133,7 +134,7 @@ DOC;
      */
     protected function getNameInput(): string
     {
-        $n = ucfirst(\Str::camel(trim($this->argument('name'))));
+        $n = ucfirst(Str::camel(trim($this->argument('name'))));
 
         return preg_replace('/(.*)Resource$/', '$1', $n).'Resource';
     }

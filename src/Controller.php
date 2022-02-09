@@ -12,6 +12,7 @@ use Bfg\Resource\Exceptions\UndefinedScopeException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class Controller
@@ -149,7 +150,7 @@ class Controller
     public static function callScopes(array $callScopes, BfgResource|string $resource, $result): mixed
     {
         $ref = new \ReflectionClass($resource);
-        $resource_name = \Str::snake(str_replace('Resource', '', class_basename($resource)));
+        $resource_name = Str::snake(str_replace('Resource', '', class_basename($resource)));
         foreach ($callScopes as $callScope => $scopeParams) {
             $callScope = preg_replace("/[\d]+#(.*)/", '$1', $callScope);
             static::checkCanScope($ref, $callScope, $resource, $resource_name);
@@ -259,7 +260,7 @@ class Controller
         $scopes = explode('/', $scope);
         $route_method = ucfirst(strtolower(request()->getMethod()));
         foreach ($scopes as $key => $scope) {
-            $camel_scope = ! is_numeric($scope) ? \Str::camel($scope) : null;
+            $camel_scope = ! is_numeric($scope) ? Str::camel($scope) : null;
             $name_method = $camel_scope ? "{$camel_scope}{$route_method}Scope" : null;
             if ($camel_scope && ! method_exists($resource, $name_method)) {
                 $name_method = "{$camel_scope}CollectionScope";

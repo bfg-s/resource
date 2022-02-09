@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 trait ResourceInitializations
 {
@@ -62,7 +63,7 @@ trait ResourceInitializations
      */
     protected function generate(array $only)
     {
-        $resource_name = \Str::snake(str_replace('Resource', '', class_basename(static::class)));
+        $resource_name = Str::snake(str_replace('Resource', '', class_basename(static::class)));
 
         $check_fields = $this->accessCheck($resource_name);
 
@@ -179,7 +180,7 @@ trait ResourceInitializations
                 multi_dot_call($this->resource, $path ?: $name) : null;
         }
 
-        $camel_name = ucfirst(\Str::camel($name));
+        $camel_name = ucfirst(Str::camel($name));
 
         $mutator_method = "get{$camel_name}Field";
 
