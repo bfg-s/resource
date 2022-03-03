@@ -17,7 +17,7 @@ trait ResourceClassApiTrait
      * @throws \ReflectionException
      * @throws \Throwable
      */
-    public static function scope(...$path)
+    public static function scope(...$path): mixed
     {
         $result = Controller::callScopes(
             Controller::sortScopes(implode('/', $path), static::class),
@@ -27,5 +27,19 @@ trait ResourceClassApiTrait
 
         return $result ? ($result instanceof Collection || $result instanceof LengthAwarePaginator ?
             static::collection($result) : static::make($result)) : [];
+    }
+
+    /**
+     * @param ...$path
+     * @return object
+     * @throws \Bfg\Resource\Exceptions\AttemptToCheckBuilderException
+     * @throws \Bfg\Resource\Exceptions\PermissionDeniedException
+     * @throws \Bfg\Resource\Exceptions\UndefinedScopeException
+     * @throws \ReflectionException
+     * @throws \Throwable
+     */
+    public static function use(...$path): object
+    {
+        return (object) static::scope(...$path)->toFields();
     }
 }
