@@ -22,6 +22,9 @@ class ServiceProvider extends IlluminateServiceProvider
         $this->app->extend('command.resource.make', function ($app) {
             return new ResourceMakeCommand(app('files'));
         });
+        $this->app->extend(\Illuminate\Foundation\Console\ResourceMakeCommand::class, function ($app) {
+            return new ResourceMakeCommand(app('files'));
+        });
 
         if (class_exists(SanctumServiceProvider::class)) {
             $this->sanctum();
