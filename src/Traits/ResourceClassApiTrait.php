@@ -31,15 +31,17 @@ trait ResourceClassApiTrait
 
     /**
      * @param ...$path
-     * @return object
+     * @return object|static|null
      * @throws \Bfg\Resource\Exceptions\AttemptToCheckBuilderException
      * @throws \Bfg\Resource\Exceptions\PermissionDeniedException
      * @throws \Bfg\Resource\Exceptions\UndefinedScopeException
      * @throws \ReflectionException
      * @throws \Throwable
      */
-    public static function use(...$path): object
+    public static function use(...$path)
     {
-        return (object) static::scope(...$path)->toFields();
+        /** @var static|object|null $use */
+        $use = static::scope(...$path)->toFields();
+        return $use ? (object) $use : $use;
     }
 }

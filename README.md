@@ -521,3 +521,11 @@ use App\Http\Resources\UserResource;
     UserResource::scope('where', 'name', 'admin', 'first')->toFields();
 ...
 ```
+You can get the object for use
+```php
+use App\Http\Resources\UserResource;
+...
+    // For get resource array result
+    UserResource::use('where', 'name', 'admin', 'first'); // object with data
+...
+```
