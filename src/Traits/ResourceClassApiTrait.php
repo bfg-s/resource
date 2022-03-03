@@ -31,7 +31,7 @@ trait ResourceClassApiTrait
 
     /**
      * @param ...$path
-     * @return object|static|null
+     * @return Collection|object|static|null
      * @throws \Bfg\Resource\Exceptions\AttemptToCheckBuilderException
      * @throws \Bfg\Resource\Exceptions\PermissionDeniedException
      * @throws \Bfg\Resource\Exceptions\UndefinedScopeException
@@ -40,8 +40,8 @@ trait ResourceClassApiTrait
      */
     public static function use(...$path)
     {
-        /** @var static|object|null $use */
+        /** @var Collection|static|object|null $use */
         $use = static::scope(...$path)->toFields();
-        return $use ? (object) $use : $use;
+        return isset($use[0]) ? collect($use)->map(fn ($i) => (object) $i) : (object) $use;
     }
 }
