@@ -152,7 +152,7 @@ In your `RouteServiceProvider` Add the pointer to search for routs:
         $this->routes(function () {
             ...
             Route::find(
-                __DIR__.'/../Http/Resources',
+                __DIR__.'/../Resources',
                 Route::prefix('api')
                     ->middleware(['api', 'auth:sanctum'])
                     ->as('api.')
