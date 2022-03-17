@@ -177,4 +177,15 @@ DOC;
             ['collection', 'c', InputOption::VALUE_NONE, 'Create a resource collection'],
         ];
     }
+
+    /**
+     * Get the default namespace for the class.
+     *
+     * @param  string  $rootNamespace
+     * @return string
+     */
+    protected function getDefaultNamespace($rootNamespace)
+    {
+        return $rootNamespace.'\Resources';
+    }
 }
