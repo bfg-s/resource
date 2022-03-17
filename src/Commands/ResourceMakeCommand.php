@@ -2,6 +2,7 @@
 
 namespace Bfg\Resource\Commands;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Console\ResourceMakeCommand as IlluminateResourceMakeCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
@@ -46,20 +47,43 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
     protected function replaceClassDoc(&$stub, $name): static
     {
         $searches = [
-            ['DummyDocBlock', 'DummyUses'],
-            ['{{ doc_block }}', '{{ uses }}'],
-            ['{{doc_block}}'.'{{uses}}'],
+            ['DummyDocBlock', 'DummyUses', 'DummyMapField'],
+            ['{{ doc_block }}', '{{ uses }}', '{{ map_field }}'],
+            ['{{doc_block}}', '{{uses}}', '{{map_field}}'],
         ];
 
         foreach ($searches as $search) {
             $stub = str_replace(
                 $search,
-                [$this->getDocBlock(), $this->getUses()],
+                [$this->getDocBlock(), $this->getUses(), $this->getMapFields()],
                 $stub
             );
         }
 
         return $this;
+    }
+
+    protected function getMapFields()
+    {
+        $model = $this->model();
+
+        if ($model) {
+
+            $m = new $model;
+
+            if ($m instanceof Model) {
+
+                $result = "";
+
+                foreach ($m->getFillable() as $item) {
+                    $result .= str_repeat(' ', 6) . "'{$item}',\n";
+                }
+
+                return trim($result);
+            }
+        }
+
+        return str_repeat(' ', 6);
     }
 
     /**
@@ -75,10 +99,9 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
             $m = $this->option('model');
 
             $t = $m ? "\n    public static \$model = $class::class;\n" : '';
-
+            // use EloquentScopesTrait, ModelScopesTrait;
             return <<<DOC
 
-    use EloquentScopesTrait, ModelScopesTrait;
 {$t}
 DOC;
         }

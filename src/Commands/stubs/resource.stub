@@ -11,6 +11,6 @@ class {{ class }} extends BfgResource
      * @var array
      */
     protected array $map = [
-
+{{ map_fields }}
     ];
 }
