@@ -75,15 +75,17 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
 
                 $result = "";
 
-                foreach ($m->getFillable() as $item) {
-                    $result .= str_repeat(' ', 6) . "'{$item}',\n";
+                foreach (['id', ...$m->getFillable()] as $item) {
+                    if (!str_ends_with($item, '_id')) {
+                        $result .= str_repeat(' ', 8) . "'{$item}',\n";
+                    }
                 }
 
                 return trim($result);
             }
         }
 
-        return str_repeat(' ', 6);
+        return str_repeat(' ', 8);
     }
 
     /**
@@ -101,7 +103,6 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
             $t = $m ? "\n    public static \$model = $class::class;\n" : '';
             // use EloquentScopesTrait, ModelScopesTrait;
             return <<<DOC
-
 {$t}
 DOC;
         }
@@ -170,6 +171,7 @@ DOC;
     protected function getOptions()
     {
         return [
+            ['force', 'f', InputOption::VALUE_NONE, 'Force creates the model'],
             ['model', 'm', InputOption::VALUE_OPTIONAL, 'Create with the model'],
             ['route', 'r', InputOption::VALUE_NONE, 'Create with route'],
             ['collection', 'c', InputOption::VALUE_NONE, 'Create a resource collection'],
