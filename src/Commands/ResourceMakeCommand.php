@@ -48,8 +48,8 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
     {
         $searches = [
             ['DummyDocBlock', 'DummyUses', 'DummyMapField'],
-            ['{{ doc_block }}', '{{ uses }}', '{{ map_field }}'],
-            ['{{doc_block}}', '{{uses}}', '{{map_field}}'],
+            ['{{ doc_block }}', '{{ uses }}', '{{ map_fields }}'],
+            ['{{doc_block}}', '{{uses}}', '{{map_fields}}'],
         ];
 
         foreach ($searches as $search) {
