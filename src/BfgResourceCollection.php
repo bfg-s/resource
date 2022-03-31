@@ -35,7 +35,6 @@ class BfgResourceCollection extends ResourceCollection
     public function fill(array|string $name, mixed $value = null): static
     {
         foreach ($this->collection as $item) {
-
             $item->fill($name, $value);
         }
 

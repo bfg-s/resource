@@ -180,13 +180,13 @@ trait ResourceInitializations
                 multi_dot_call($this->resource, $path ?: $name) : null;
         }
 
-        $camel_name = ucfirst(Str::camel($name));
-
-        $mutator_method = "get{$camel_name}Field";
-
-        if (method_exists($this, $mutator_method) && !$off_mutators) {
-            $resource_result = $this->{$mutator_method}($resource_result??null);
-        }
+//        $camel_name = ucfirst(Str::camel($name));
+//
+//        $mutator_method = "get{$camel_name}Field";
+//
+//        if (method_exists($this, $mutator_method) && !$off_mutators) {
+//            $resource_result = $this->{$mutator_method}($resource_result??null);
+//        }
 
         if (! isset($resource_result)) {
             $resource_result = null;

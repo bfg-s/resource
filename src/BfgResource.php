@@ -15,6 +15,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 abstract class BfgResource extends JsonResource
 {
@@ -228,6 +229,14 @@ abstract class BfgResource extends JsonResource
             } else {
                 $fields[$key] = $field;
             }
+
+            $camel_name = ucfirst(Str::camel($key));
+
+            $mutator_method = "get{$camel_name}Field";
+
+            if (method_exists($this, $mutator_method)) {
+                $fields[$key] = $this->{$mutator_method}($fields[$key]);
+            }
         }
 
         return $fields;
@@ -317,6 +326,7 @@ abstract class BfgResource extends JsonResource
      */
     public function fill(array|string $name, mixed $value = null): static
     {
+        dump($name, $value::class);
         if (is_array($name)) {
 
             foreach ($name as $key => $item) {
