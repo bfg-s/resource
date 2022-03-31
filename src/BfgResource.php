@@ -311,6 +311,28 @@ abstract class BfgResource extends JsonResource
     }
 
     /**
+     * @param  array|string  $name
+     * @param  mixed|null  $value
+     * @return $this
+     */
+    public function fill(array|string $name, mixed $value = null): static
+    {
+        if (is_array($name)) {
+
+            foreach ($name as $key => $item) {
+
+                $this->fill($key, $item);
+            }
+
+            return $this;
+        }
+
+        $this->__set($name, $value);
+
+        return $this;
+    }
+
+    /**
      * Determine if an attribute exists on the resource.
      *
      * @param  string  $key
@@ -342,6 +364,17 @@ abstract class BfgResource extends JsonResource
         } else {
             if (is_array($this->resource)) {
                 unset($this->resource[$key]);
+            }
+        }
+    }
+
+    public function __set(string $name, $value): void
+    {
+        if (is_object($this->resource)) {
+            $this->resource->{$name} = $value;
+        } else {
+            if (is_array($this->resource)) {
+                $this->resource[$name] = $value;
             }
         }
     }

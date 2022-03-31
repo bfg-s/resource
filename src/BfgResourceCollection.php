@@ -28,6 +28,21 @@ class BfgResourceCollection extends ResourceCollection
     }
 
     /**
+     * @param  array|string  $name
+     * @param  mixed|null  $value
+     * @return $this
+     */
+    public function fill(array|string $name, mixed $value = null): static
+    {
+        foreach ($this->collection as $item) {
+
+            $item->fill($name, $value);
+        }
+
+        return $this;
+    }
+
+    /**
      * Transform the resource into a JSON array.
      *
      * @param  \Illuminate\Http\Request  $request
