@@ -326,7 +326,6 @@ abstract class BfgResource extends JsonResource
      */
     public function fill(array|string $name, mixed $value = null): static
     {
-        dump($name, $value::class);
         if (is_array($name)) {
 
             foreach ($name as $key => $item) {
