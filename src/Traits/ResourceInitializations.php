@@ -180,7 +180,7 @@ trait ResourceInitializations
 
         $mutator_method = "get{$camel_name}Raw";
 
-        if (method_exists($this, $mutator_method) && !$off_mutators) {
+        if (method_exists($this, $mutator_method)) {
             $resource_result = $this->{$mutator_method}($resource_result??null);
         }
 
