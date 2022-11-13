@@ -3,19 +3,24 @@
 namespace Bfg\Resource\Traits;
 
 use Bfg\Resource\Controller;
+use Bfg\Resource\Exceptions\AttemptToCheckBuilderException;
+use Bfg\Resource\Exceptions\PermissionDeniedException;
+use Bfg\Resource\Exceptions\UndefinedScopeException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use ReflectionException;
+use Throwable;
 
 trait ResourceClassApiTrait
 {
     /**
      * @param ...$path
      * @return mixed
-     * @throws \Bfg\Resource\Exceptions\AttemptToCheckBuilderException
-     * @throws \Bfg\Resource\Exceptions\PermissionDeniedException
-     * @throws \Bfg\Resource\Exceptions\UndefinedScopeException
-     * @throws \ReflectionException
-     * @throws \Throwable
+     * @throws AttemptToCheckBuilderException
+     * @throws PermissionDeniedException
+     * @throws UndefinedScopeException
+     * @throws ReflectionException
+     * @throws Throwable
      */
     public static function scope(...$path): mixed
     {
@@ -31,12 +36,12 @@ trait ResourceClassApiTrait
 
     /**
      * @param ...$path
-     * @return Collection|object|static|null
-     * @throws \Bfg\Resource\Exceptions\AttemptToCheckBuilderException
-     * @throws \Bfg\Resource\Exceptions\PermissionDeniedException
-     * @throws \Bfg\Resource\Exceptions\UndefinedScopeException
-     * @throws \ReflectionException
-     * @throws \Throwable
+     * @return Collection|object
+     * @throws AttemptToCheckBuilderException
+     * @throws PermissionDeniedException
+     * @throws UndefinedScopeException
+     * @throws ReflectionException
+     * @throws Throwable
      */
     public static function use(...$path)
     {

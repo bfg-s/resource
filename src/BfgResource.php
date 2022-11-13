@@ -187,8 +187,8 @@ abstract class BfgResource extends JsonResource
                 $attribute = $attribute->newInstance();
                 /** @var CanUser $attribute */
                 if (
-                    multi_dot_call($this->user(), $attribute->user_field) !=
-                    multi_dot_call($this->resource, $attribute->local_field)
+                    static::multiDotCall($this->user(), $attribute->user_field) !=
+                    static::multiDotCall($this->resource, $attribute->local_field)
                 ) {
                     return null;
                 }
@@ -281,7 +281,7 @@ abstract class BfgResource extends JsonResource
         if (
             $resource instanceof Collection
             || $resource instanceof LengthAwarePaginator
-            || (is_array($resource) && !is_assoc($resource))
+            || (is_array($resource) && !static::isAssoc($resource))
         ) {
             return static::collection($resource);
         }
@@ -475,5 +475,33 @@ abstract class BfgResource extends JsonResource
     public function nesting(): int
     {
         return static::$created[$this::class] ?? 0;
+    }
+
+    /**
+     * Check whether an array is associative.
+     *
+     * @param  array  $arr
+     * @return bool
+     */
+    public static function isAssoc(array $arr): bool
+    {
+        if ([] === $arr) {
+            return false;
+        }
+
+        return array_keys($arr) !== range(0, count($arr) - 1);
+    }
+
+    /**
+     * Access to an object or/and an array using the dot path method.
+     *
+     * @param $obj
+     * @param  string  $dot_path
+     * @param  bool  $locale
+     * @return mixed
+     */
+    public static function multiDotCall($obj, string $dot_path, bool $locale = true): mixed
+    {
+        return \Bfg\Resource\Accessor::create($obj)->dotCall($dot_path, $locale);
     }
 }

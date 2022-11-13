@@ -173,7 +173,7 @@ trait ResourceInitializations
             }
         } else {
             $resource_result = $this->resource ?
-                multi_dot_call($this->resource, $path ?: $name) : null;
+                static::multiDotCall($this->resource, $path ?: $name) : null;
         }
 
         $camel_name = ucfirst(Str::camel($name));

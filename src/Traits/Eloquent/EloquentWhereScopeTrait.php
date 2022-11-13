@@ -16,7 +16,7 @@ trait EloquentWhereScopeTrait
      * @param  string|null  $value
      * @return mixed
      */
-    public static function whereScope(
+    public static function whereGetScope(
         Builder|Model $model,
         string $column,
         string $condition,

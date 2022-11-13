@@ -14,7 +14,7 @@ trait EloquentLatestScopeTrait
      * @param  string  $column
      * @return mixed
      */
-    public static function latestScope(Builder|Model $model, string $column = 'id'): mixed
+    public static function latestGetScope(Builder|Model $model, string $column = 'id'): mixed
     {
         return $model->latest($column);
     }

@@ -2,6 +2,7 @@
 
 namespace Bfg\Resource\Traits\Eloquent;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,15 +16,15 @@ trait EloquentPaginateScopeTrait
      * @param  string  $pageName
      * @param  int|null  $page
      * @param  mixed  ...$columns
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @return LengthAwarePaginator
      */
-    public static function paginateScope(
+    public static function paginateGetScope(
         Builder|Model $model,
         int $perPage = null,
         string $pageName = 'page',
         int $page = null,
         ...$columns
-    ): \Illuminate\Contracts\Pagination\LengthAwarePaginator {
+    ): LengthAwarePaginator {
         /** @var Model $model */
         return $model->paginate($perPage, $columns ?: ['*'], $pageName, $page);
     }

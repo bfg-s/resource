@@ -15,7 +15,7 @@ trait EloquentOrderByScopeTrait
      * @param  string  $direction
      * @return mixed
      */
-    public static function orderByScope(Builder|Model $model, string $column, string $direction = 'asc'): mixed
+    public static function orderByGetScope(Builder|Model $model, string $column, string $direction = 'asc'): mixed
     {
         return $model->orderBy($column, $direction);
     }
@@ -27,7 +27,7 @@ trait EloquentOrderByScopeTrait
      * @param  string  $column
      * @return mixed
      */
-    public static function orderByDescScope(Builder|Model $model, string $column): mixed
+    public static function orderByDescGetScope(Builder|Model $model, string $column): mixed
     {
         return $model->orderByDesc($column);
     }

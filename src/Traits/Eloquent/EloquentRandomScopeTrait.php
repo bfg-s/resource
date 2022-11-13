@@ -14,7 +14,7 @@ trait EloquentRandomScopeTrait
      * @param  string  $seed
      * @return mixed
      */
-    public static function randomScope(Builder|Model $model, string $seed = ''): mixed
+    public static function randomGetScope(Builder|Model $model, string $seed = ''): mixed
     {
         return $model->inRandomOrder($seed);
     }

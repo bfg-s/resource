@@ -14,19 +14,8 @@ trait EloquentFirstScopeTrait
      * @param  mixed  ...$columns
      * @return mixed
      */
-    public static function firstScope(Builder|Model $model, ...$columns): mixed
+    public static function firstGetScope(Builder|Model $model, ...$columns): mixed
     {
         return $model->first($columns ?: ['*']);
-    }
-
-    /**
-     * The `options` request default.
-     *
-     * @param  Builder|Model  $result
-     * @return Model|Builder|null
-     */
-    public static function optionsMethod(Builder|Model $result): Model|Builder|null
-    {
-        return $result->first();
     }
 }

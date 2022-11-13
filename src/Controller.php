@@ -10,10 +10,14 @@ use Bfg\Resource\Exceptions\PermissionDeniedException;
 use Bfg\Resource\Exceptions\ResourceException;
 use Bfg\Resource\Exceptions\UndefinedScopeException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use ReflectionClass;
+use ReflectionException;
+use Throwable;
 
 class Controller
 {
@@ -32,17 +36,19 @@ class Controller
      * @param  string|null  $scope
      * @return mixed
      * @throws PermissionDeniedException
-     * @throws \Throwable
+     * @throws Throwable
      */
-    public function index(BfgResource|string $resource, string $scope = null): mixed
-    {
+    public function index(
+        BfgResource|string $resource,
+        string $scope = null
+    ): mixed {
         $this->scope = $scope ?: request('scope');
 
         try {
             $result = $this->buildDefaultResource($resource);
         } catch (ValidationException $exception) {
             throw $exception;
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             \Log::error($exception);
 
             return $this->buildException($exception);
@@ -60,10 +66,10 @@ class Controller
     }
 
     /**
-     * @param  \Throwable  $exception
-     * @return \Illuminate\Http\JsonResponse
+     * @param  Throwable  $exception
+     * @return JsonResponse
      */
-    protected function buildException(\Throwable $exception): \Illuminate\Http\JsonResponse
+    protected function buildException(Throwable $exception): JsonResponse
     {
         $code = 400;
 
@@ -99,8 +105,8 @@ class Controller
      * @return mixed
      * @throws AttemptToCheckBuilderException
      * @throws PermissionDeniedException
-     * @throws \ReflectionException
-     * @throws \Throwable
+     * @throws ReflectionException
+     * @throws Throwable
      */
     protected function buildDefaultResource(BfgResource|string $resource): mixed
     {
@@ -116,15 +122,16 @@ class Controller
      * @return mixed
      * @throws AttemptToCheckBuilderException
      * @throws PermissionDeniedException
-     * @throws \ReflectionException
-     * @throws \Throwable
+     * @throws ReflectionException
+     * @throws Throwable
      */
     protected function applyScopes(BfgResource|string $resource, $result): mixed
     {
         $sortedScopes = $this->scope ? static::sortScopes($this->scope, $resource) : [];
-        if (method_exists($resource, 'globalScope')) {
-            $result = embedded_call([$resource, 'globalScope'], [
-                $result, \Arr::last($sortedScopes['globalScope']??[])
+        $route_method = ucfirst(strtolower(request()->getMethod()));
+        if (method_exists($resource, $route_method . 'Scope')) {
+            $result = embedded_call([$resource, $route_method . 'Scope'], [
+                $result, \Arr::last($sortedScopes[$route_method . 'Scope']??[])
             ]);
         }
 
@@ -144,15 +151,18 @@ class Controller
      * @return mixed
      * @throws AttemptToCheckBuilderException
      * @throws PermissionDeniedException
-     * @throws \ReflectionException
-     * @throws \Throwable
+     * @throws ReflectionException
+     * @throws Throwable
      */
-    public static function callScopes(array $callScopes, BfgResource|string $resource, $result): mixed
-    {
-        $ref = new \ReflectionClass($resource);
+    public static function callScopes(
+        array $callScopes,
+        BfgResource|string $resource,
+        $result
+    ): mixed {
+        $ref = new ReflectionClass($resource);
         $resource_name = Str::snake(str_replace('Resource', '', class_basename($resource)));
         foreach ($callScopes as $callScope => $scopeParams) {
-            $callScope = preg_replace("/[\d]+#(.*)/", '$1', $callScope);
+            $callScope = preg_replace("/\d+#(.*)/", '$1', $callScope);
             static::checkCanScope($ref, $callScope, $resource, $resource_name);
             $call = fn ($model) => static::scopeCaller($model, $callScope, $scopeParams, $resource, $ref);
             if ($result instanceof Collection) {
@@ -185,15 +195,19 @@ class Controller
     }
 
     /**
-     * @param  \ReflectionClass  $ref
+     * @param  ReflectionClass  $ref
      * @param $callScope
      * @param  string|BfgResource  $resource
      * @param $resource_name
      * @throws PermissionDeniedException
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
-    public static function checkCanScope(\ReflectionClass $ref, $callScope, BfgResource|string $resource, $resource_name)
-    {
+    public static function checkCanScope(
+        ReflectionClass $ref,
+        $callScope,
+        BfgResource|string $resource,
+        $resource_name
+    ): void {
         $method = $ref->getMethod($callScope);
         $scope_name = str_replace('Scope', '', $callScope);
         $cans = $method->getAttributes(CanScope::class, \ReflectionAttribute::IS_INSTANCEOF);
@@ -217,15 +231,20 @@ class Controller
      * @param $callScope
      * @param $scopeParams
      * @param BfgResource|string $resource
-     * @param  \ReflectionClass  $ref
+     * @param  ReflectionClass  $ref
      * @return mixed
      * @throws AttemptToCheckBuilderException
      * @throws PermissionDeniedException
-     * @throws \ReflectionException
-     * @throws \Throwable
+     * @throws ReflectionException
+     * @throws Throwable
      */
-    public static function scopeCaller($model, $callScope, $scopeParams, BfgResource|string $resource, \ReflectionClass $ref): mixed
-    {
+    public static function scopeCaller(
+        $model,
+        $callScope,
+        $scopeParams,
+        BfgResource|string $resource,
+        ReflectionClass $ref
+    ): mixed {
         $method = $ref->getMethod($callScope);
         $cans = $method->getAttributes(CanUser::class, \ReflectionAttribute::IS_INSTANCEOF);
         if ($cans) {
@@ -233,11 +252,11 @@ class Controller
                 throw new AttemptToCheckBuilderException();
             }
             foreach ($cans as $can) {
-                /** @var CanUser $attr */
+                /** @var CanUser $attribute */
                 $attribute = $can->newInstance();
                 if (
-                    multi_dot_call(static::user($resource), $attribute->user_field) !=
-                    multi_dot_call($model, $attribute->local_field)
+                    $resource::multiDotCall(static::user($resource), $attribute->user_field) !=
+                    $resource::multiDotCall($model, $attribute->local_field)
                 ) {
                     throw new PermissionDeniedException($callScope);
                 }
@@ -263,19 +282,16 @@ class Controller
             $camel_scope = ! is_numeric($scope) ? Str::camel($scope) : null;
             $name_method = $camel_scope ? "{$camel_scope}{$route_method}Scope" : null;
             if ($camel_scope && ! method_exists($resource, $name_method)) {
-                $name_method = "{$camel_scope}CollectionScope";
-            }
-            if ($camel_scope && ! method_exists($resource, $name_method)) {
                 $name_method = "{$camel_scope}Scope";
             }
             if ($camel_scope && method_exists($resource, $name_method)) {
                 $callScopes["{$key}#".$name_method] = [];
             } else {
-                $routeRealParam = route_real_param($scope);
+                $routeRealParam = static::route_real_param($scope);
                 if (count($callScopes)) {
                     $callScopes[array_key_last($callScopes)][] = $routeRealParam;
                 } else if ($routeRealParam) {
-                    $callScopes['globalScope'][] = $routeRealParam;
+                    $callScopes[$route_method . 'Scope'][] = $routeRealParam;
                 } else {
                     throw new UndefinedScopeException($scope);
                 }
@@ -283,5 +299,30 @@ class Controller
         }
 
         return $callScopes;
+    }
+
+    protected static function route_real_param($data): mixed
+    {
+        if (is_numeric($data)) {
+            $data = $data == (int) $data ? (int) $data : (float) $data;
+        } else {
+            if ($data === 'true') {
+                $data = true;
+            } else {
+                if ($data === 'false') {
+                    $data = false;
+                } else {
+                    if ($data === 'null') {
+                        $data = null;
+                    } else {
+                        if (is_string($data)) {
+                            $data = str_replace('*', '%', $data);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $data;
     }
 }

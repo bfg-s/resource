@@ -7,7 +7,7 @@ use Illuminate\Foundation\Console\ResourceMakeCommand as IlluminateResourceMakeC
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
 
-class ResourceMakeCommand extends IlluminateResourceMakeCommand
+class BfgResourceMakeCommand extends IlluminateResourceMakeCommand
 {
     /**
      * Resolve the fully-qualified path to the stub.

@@ -15,7 +15,7 @@ trait EloquentForPageScopeTrait
      * @param  int  $perPage
      * @return mixed
      */
-    public static function forPageScope(Builder|Model $model, int $page, int $perPage = 15): mixed
+    public static function forPageGetScope(Builder|Model $model, int $page, int $perPage = 15): mixed
     {
         return $model->forPage($page, $perPage);
     }

@@ -14,7 +14,7 @@ trait EloquentLimitScopeTrait
      * @param  int  $count
      * @return mixed
      */
-    public static function limitScope(Builder|Model $model, int $count): mixed
+    public static function limitGetScope(Builder|Model $model, int $count): mixed
     {
         return $model->limit($count);
     }

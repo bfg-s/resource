@@ -15,7 +15,7 @@ trait EloquentFindScopeTrait
      * @param  int  $id
      * @return mixed
      */
-    public static function findScope(Builder|Model $model, int $id, ...$data): mixed
+    public static function findGetScope(Builder|Model $model, int $id, ...$data): mixed
     {
         return $model->find($id, $data ?: ['*']);
     }

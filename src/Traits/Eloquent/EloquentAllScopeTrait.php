@@ -14,7 +14,7 @@ trait EloquentAllScopeTrait
      * @param  mixed  ...$columns
      * @return mixed
      */
-    public static function allScope(Builder|Model $model, ...$columns): mixed
+    public static function allGetScope(Builder|Model $model, ...$columns): mixed
     {
         return $model->get($columns ?: ['*']);
     }
