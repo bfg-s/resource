@@ -4,6 +4,7 @@ namespace Bfg\Resource;
 
 use Bfg\Resource\Commands\BfgRouteListCommand;
 use Bfg\Resource\Commands\BfgResourceMakeCommand;
+use Bfg\Wood\WoodCore;
 use Illuminate\Foundation\Console\ResourceMakeCommand;
 use Illuminate\Foundation\Console\RouteListCommand;
 use Laravel\Sanctum\SanctumServiceProvider;
@@ -33,6 +34,10 @@ class ServiceProvider extends IlluminateServiceProvider
 
         if (class_exists(SanctumServiceProvider::class)) {
             $this->sanctum();
+        }
+
+        if (class_exists(WoodCore::class)) {
+            \Wood::addTopic(\Bfg\Resource\Wood\BfgResource::class);
         }
     }
 

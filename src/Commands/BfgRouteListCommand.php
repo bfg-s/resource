@@ -83,6 +83,8 @@ class BfgRouteListCommand extends RouteListCommand
                 . $this->makeParamsFromMethod($method);
         } else if (preg_match('/(get|post|put|patch|delete|options)Method/', $method->getName(), $m)) {
             $methodName = strtoupper($m[1]);
+        } else {
+            return null;
         }
 
         return $this->filterRoute([
