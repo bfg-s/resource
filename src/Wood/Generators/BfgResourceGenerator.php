@@ -152,9 +152,9 @@ class BfgResourceGenerator extends GeneratorAbstract
                     );
                     file_put_contents($class_http->fileSubject->file, $content);
                 }
-                $classContent = preg_replace('/\d+\s=>\s/m', '', $classContent);
-                file_put_contents($resource->class->fileSubject->file, $classContent);
             }
+            $classContent = preg_replace('/\d+\s=>\s/m', '', $classContent);
+            file_put_contents($resource->class->fileSubject->file, $classContent);
         }
     }
 
