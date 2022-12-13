@@ -14,6 +14,7 @@ use Bfg\Resource\Traits\Eloquent\EloquentRandomScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentSkipScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentWhereScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentWithScopeTrait;
+use Bfg\Resource\Traits\Model\ModelTimestampsTrait;
 use Bfg\Resource\Wood\BfgResource;
 use Bfg\Wood\Generators\GeneratorAbstract;
 use Bfg\Wood\Models\Topic;
@@ -38,6 +39,9 @@ class BfgResourceGenerator extends GeneratorAbstract
         $this->class->extends(
             \Bfg\Resource\BfgResource::class
         );
+        $this->class->trait(
+            ModelTimestampsTrait::class
+        );
         if ($this->http) {
             $this->class_http?->extends(
                 \Bfg\Resource\BfgResource::class
@@ -47,10 +51,12 @@ class BfgResourceGenerator extends GeneratorAbstract
 
     protected function model()
     {
-        $this->class->publicStaticProperty(
-            'model',
-            Comcode::useIfClass($this->model->class->class, $this->class)."::class"
-        );
+        if ($this->http) {
+            $this->class_http?->publicStaticProperty(
+                'model',
+                Comcode::useIfClass($this->model->class->class, $this->class)."::class"
+            );
+        }
     }
 
     protected function http_extends()
