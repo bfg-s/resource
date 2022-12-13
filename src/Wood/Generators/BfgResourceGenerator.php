@@ -3,7 +3,6 @@
 namespace Bfg\Resource\Wood\Generators;
 
 use Bfg\Comcode\Comcode;
-use Bfg\Comcode\Subjects\DocSubject;
 use Bfg\Resource\Traits\Eloquent\EloquentAllScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentFindScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentFirstScopeTrait;
@@ -17,12 +16,8 @@ use Bfg\Resource\Traits\Eloquent\EloquentWhereScopeTrait;
 use Bfg\Resource\Traits\Eloquent\EloquentWithScopeTrait;
 use Bfg\Resource\Wood\BfgResource;
 use Bfg\Wood\Generators\GeneratorAbstract;
-use Bfg\Wood\Models\Resource;
 use Bfg\Wood\Models\Topic;
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use JsonSerializable;
 
 /**
  * @mixin BfgResource
@@ -43,9 +38,11 @@ class BfgResourceGenerator extends GeneratorAbstract
         $this->class->extends(
             \Bfg\Resource\BfgResource::class
         );
-        $this->class_http?->extends(
-            \Bfg\Resource\BfgResource::class
-        );
+        if ($this->http) {
+            $this->class_http?->extends(
+                \Bfg\Resource\BfgResource::class
+            );
+        }
     }
 
     protected function model()
@@ -58,46 +55,50 @@ class BfgResourceGenerator extends GeneratorAbstract
 
     protected function http_extends()
     {
-        $this->class_http?->protectedProperty(
-            ['array', 'extends'],
-            [Comcode::useIfClass($this->class->class, $this->class_http)."::class"]
-        );
+        if ($this->http) {
+            $this->class_http?->protectedProperty(
+                ['array', 'extends'],
+                [Comcode::useIfClass($this->class->class, $this->class_http)."::class"]
+            );
+        }
     }
 
     protected function http_traits()
     {
-        if ($this->all_scope) {
-            $this->class_http?->trait(EloquentAllScopeTrait::class);
-        }
-        if ($this->find_scope) {
-            $this->class_http?->trait(EloquentFindScopeTrait::class);
-        }
-        if ($this->first_scope) {
-            $this->class_http?->trait(EloquentFirstScopeTrait::class);
-        }
-        if ($this->latest_scope) {
-            $this->class_http?->trait(EloquentLatestScopeTrait::class);
-        }
-        if ($this->limit_scope) {
-            $this->class_http?->trait(EloquentLimitScopeTrait::class);
-        }
-        if ($this->order_by_scope) {
-            $this->class_http?->trait(EloquentOrderByScopeTrait::class);
-        }
-        if ($this->paginate_scope) {
-            $this->class_http?->trait(EloquentPaginateScopeTrait::class);
-        }
-        if ($this->random_scope) {
-            $this->class_http?->trait(EloquentRandomScopeTrait::class);
-        }
-        if ($this->skip_scope) {
-            $this->class_http?->trait(EloquentSkipScopeTrait::class);
-        }
-        if ($this->where_scope) {
-            $this->class_http?->trait(EloquentWhereScopeTrait::class);
-        }
-        if ($this->width_scope) {
-            $this->class_http?->trait(EloquentWithScopeTrait::class);
+        if ($this->http) {
+            if ($this->all_scope) {
+                $this->class_http?->trait(EloquentAllScopeTrait::class);
+            }
+            if ($this->find_scope) {
+                $this->class_http?->trait(EloquentFindScopeTrait::class);
+            }
+            if ($this->first_scope) {
+                $this->class_http?->trait(EloquentFirstScopeTrait::class);
+            }
+            if ($this->latest_scope) {
+                $this->class_http?->trait(EloquentLatestScopeTrait::class);
+            }
+            if ($this->limit_scope) {
+                $this->class_http?->trait(EloquentLimitScopeTrait::class);
+            }
+            if ($this->order_by_scope) {
+                $this->class_http?->trait(EloquentOrderByScopeTrait::class);
+            }
+            if ($this->paginate_scope) {
+                $this->class_http?->trait(EloquentPaginateScopeTrait::class);
+            }
+            if ($this->random_scope) {
+                $this->class_http?->trait(EloquentRandomScopeTrait::class);
+            }
+            if ($this->skip_scope) {
+                $this->class_http?->trait(EloquentSkipScopeTrait::class);
+            }
+            if ($this->where_scope) {
+                $this->class_http?->trait(EloquentWhereScopeTrait::class);
+            }
+            if ($this->width_scope) {
+                $this->class_http?->trait(EloquentWithScopeTrait::class);
+            }
         }
     }
 
@@ -140,7 +141,8 @@ class BfgResourceGenerator extends GeneratorAbstract
         /** @var BfgResource $resource */
         foreach ($this->collection() as $resource) {
             $classContent = $resource->class->content();
-            if ($class_http = $resource->class_http) {
+            if ($resource->http) {
+                $class_http = $resource->class_http;
                 $baseName = class_basename($class_http->class);
                 $content = $class_http->content();
                 if (! str_contains($content, 'GetResource]')) {
@@ -157,24 +159,4 @@ class BfgResourceGenerator extends GeneratorAbstract
             file_put_contents($resource->class->fileSubject->file, $classContent);
         }
     }
-
-//    protected function toArray()
-//    {
-//        $this->class->use(Arrayable::class);
-//        $this->class->use(JsonSerializable::class);
-//        $this->class->when(
-//            $this->class->notExistsMethod('toArray'),
-//            fn() => $this->class
-//                ->publicMethod('toArray')
-//                ->expectParams('request')
-//                ->comment(
-//                    fn (DocSubject $doc)
-//                    => $doc->name('Transform the resource into an array.')
-//                        ->tagParam(Request::class, 'request')
-//                        ->tagReturn('array|Arrayable|JsonSerializable')
-//                )
-//                ->return()
-//                ->staticCall('parent', 'toArray', php('request'))
-//        );
-//    }
 }
