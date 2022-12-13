@@ -529,3 +529,6 @@ use App\Http\Resources\UserResource;
     UserResource::use('where', 'name', 'admin', 'first'); // object with data
 ...
 ```
+
+# Wood support
+[wood.veskod.com](https://wood.veskod.com)
