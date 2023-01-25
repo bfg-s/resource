@@ -54,7 +54,7 @@ class BfgResourceGenerator extends GeneratorAbstract
         if ($this->http) {
             $this->class_http?->publicStaticProperty(
                 'model',
-                Comcode::useIfClass($this->model->class->class, $this->class)."::class"
+                Comcode::useIfClass($this->model->class->class, $this->class_http)."::class"
             );
         }
     }
