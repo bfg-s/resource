@@ -100,7 +100,9 @@ class BfgResourceMakeCommand extends IlluminateResourceMakeCommand
 
             $m = $this->option('model');
 
-            $t = $m ? "\n    public static \$model = $class::class;\n" : '';
+            $t = $m && $this->option('route')
+                ? "\n    public static \$model = $class::class;\n"
+                : '';
             // use EloquentScopesTrait, ModelScopesTrait;
             return <<<DOC
 {$t}
