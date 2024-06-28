@@ -128,10 +128,21 @@ abstract class BfgResource extends JsonResource
         parent::__construct($resource);
 
         if ($resource !== null) {
+            $this->generateMap();
             $this->clearMap();
             $this->applyExtends();
             $this->generate($only);
         }
+    }
+
+    /**
+     * Function for map generating before the main resource.
+     *
+     * @return void
+     */
+    protected function generateMap()
+    {
+
     }
 
     /**
