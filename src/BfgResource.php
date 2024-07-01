@@ -515,4 +515,15 @@ abstract class BfgResource extends JsonResource
     {
         return \Bfg\Resource\Accessor::create($obj)->dotCall($dot_path, $locale);
     }
+
+    /**
+     * Get any additional data that should be returned with each the resource array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function withItem($request)
+    {
+        return [];
+    }
 }

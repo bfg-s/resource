@@ -62,4 +62,31 @@ class BfgResourceCollection extends ResourceCollection
             ->map(fn ($i) => $i->toFields())
             ->toArray();
     }
+
+
+    /**
+     * Proxy with for first resource.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return mixed
+     */
+    public function with($request): mixed
+    {
+        $result = $this->collection->first()?->with($request);
+
+        foreach ($this->collection as $item) {
+
+            if (method_exists($item, 'withItem')) {
+
+                $resultWithItem = $item->withItem($request);
+
+                if ($resultWithItem && is_array($result)) {
+
+                    $result = array_merge($result, $resultWithItem);
+                }
+            }
+        }
+
+        return $result;
+    }
 }
