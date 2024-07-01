@@ -85,7 +85,7 @@ class BfgResourceCollection extends ResourceCollection
      */
     public function with($request): mixed
     {
-        $result = $this->collection->first()?->with($request);
+        $result = $this->collection->first()?->with($request) ?: [];
 
         foreach ($this->collection as $item) {
 
