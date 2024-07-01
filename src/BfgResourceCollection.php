@@ -63,6 +63,19 @@ class BfgResourceCollection extends ResourceCollection
             ->toArray();
     }
 
+    /**
+     * Set a value to the object.
+     *
+     * @param  string  $name
+     * @param  mixed|null  $value
+     * @return $this
+     */
+    public function set(string $name, mixed $value = null): static
+    {
+        $this->collection->map->set($name, $value);
+
+        return $this;
+    }
 
     /**
      * Proxy with for first resource.

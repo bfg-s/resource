@@ -504,6 +504,20 @@ abstract class BfgResource extends JsonResource
     }
 
     /**
+     * Set a value to the object.
+     *
+     * @param  string  $name
+     * @param  mixed|null  $value
+     * @return $this
+     */
+    public function set(string $name, mixed $value = null): static
+    {
+        $this->{$name} = $value;
+
+        return $this;
+    }
+
+    /**
      * Access to an object or/and an array using the dot path method.
      *
      * @param $obj
