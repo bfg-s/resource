@@ -108,6 +108,12 @@ abstract class BfgResource extends JsonResource
     protected array $extends = [];
 
     /**
+     * Force load and include relations.
+     * @var array
+     */
+    protected array $includes = [];
+
+    /**
      * @param  null  $resource
      * @param  int|null  $index
      * @param  array  $only More is needed for embedded resource extensions.

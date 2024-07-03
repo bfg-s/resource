@@ -156,11 +156,18 @@ trait ResourceInitializations
         $relation_collection = false;
 
         if ($resource_class && $this->resource instanceof Model) {
-            if ($this->resource->relationLoaded($name)) {
+
+            if (($this->resource->relationLoaded($name) || in_array($name, $this->includes)) && ! $path) {
+                if (! $this->resource->relationLoaded($name) && in_array($name, $this->includes)) {
+                    $this->resource->load($name);
+                }
                 $resource_result = $this->resource->getRelation($name);
                 $relation_collection = $resource_result instanceof Collection;
                 $relation_loaded = true;
-            } else if ($this->resource->relationLoaded($path)) {
+            } else if ($this->resource->relationLoaded($path) || in_array($path, $this->includes)) {
+                if (! $this->resource->relationLoaded($path) && in_array($path, $this->includes)) {
+                    $this->resource->load($path);
+                }
                 $resource_result = $this->resource->getRelation($path);
                 $relation_collection = $resource_result instanceof Collection;
                 $relation_loaded = true;
