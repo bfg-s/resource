@@ -73,6 +73,21 @@ class BfgResourceCollection extends ResourceCollection
     public function set(string $name, mixed $value = null): static
     {
         $this->collection->map->set($name, $value);
+        $this->{$name} = $value;
+
+        return $this;
+    }
+
+    /**
+     * Set with variable
+     *
+     * @param  array  $with
+     * @return $this
+     */
+    public function setWith(array $with): static
+    {
+        $this->collection->map->setWith($with);
+        $this->with = $with;
 
         return $this;
     }
@@ -85,7 +100,7 @@ class BfgResourceCollection extends ResourceCollection
      */
     public function with($request): mixed
     {
-        $result = $this->collection->first()?->with($request) ?: [];
+        $result = $this->collection->first()?->with($request) ?: $this->with;
 
         foreach ($this->collection as $item) {
 

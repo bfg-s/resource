@@ -524,6 +524,19 @@ abstract class BfgResource extends JsonResource
     }
 
     /**
+     * Set with variable
+     *
+     * @param  array  $with
+     * @return $this
+     */
+    public function setWith(array $with): static
+    {
+        $this->with = $with;
+
+        return $this;
+    }
+
+    /**
      * Access to an object or/and an array using the dot path method.
      *
      * @param $obj
