@@ -137,6 +137,10 @@ To use resources as API Controllers, I recommend that you use
 [JetStream](https://jetstream.laravel.com) as an API provider.
 
 ### Definition of routs
+Before you start, you need install the package [bfg/route](https://packagist.org/packages/bfg/route):
+```bash
+composer require bfg/route
+```
 In your `RouteServiceProvider` Add the pointer to search for routs:
 ```php
 ...
