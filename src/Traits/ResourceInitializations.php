@@ -4,7 +4,6 @@ namespace Bfg\Resource\Traits;
 
 use Bfg\Resource\BfgResource;
 use Bfg\Resource\BfgResourceCollection;
-use Bfg\Resource\Exceptions\PermissionDeniedException;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -59,7 +58,6 @@ trait ResourceInitializations
     /**
      * Generate all fields.
      * @return array|void
-     * @throws PermissionDeniedException
      */
     protected function generate(array $only)
     {
@@ -95,6 +93,12 @@ trait ResourceInitializations
                     $add = false;
                 }
             }
+            if (is_string($item)) {
+                $is_method = "is" . ucfirst(Str::camel($item));
+                if (method_exists($this, $is_method)) {
+                    $add = $this->{$is_method}();
+                }
+            }
             if ($add) {
                 $this->generateField(
                     $item,
@@ -109,13 +113,14 @@ trait ResourceInitializations
      * @param  string  $name
      * @param  bool  $drop_if_null
      * @return mixed
-     * @throws PermissionDeniedException
      */
     protected function generateField(string $name, bool $drop_if_null = false): mixed
     {
         if (isset($this->fields[$name])) {
             return $this->fields[$name];
         }
+
+        $camel_name = ucfirst(Str::camel($name));
 
         $resource_class = array_key_exists($name, $this->map) ? $this->map[$name] : null;
 
@@ -182,8 +187,6 @@ trait ResourceInitializations
             $resource_result = $this->resource ?
                 static::multiDotCall($this->resource, $path ?: $name) : null;
         }
-
-        $camel_name = ucfirst(Str::camel($name));
 
         $mutator_method = "get{$camel_name}Raw";
 

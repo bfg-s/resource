@@ -6,7 +6,6 @@ use App\Models\User;
 use Bfg\Resource\Attributes\CanFields;
 use Bfg\Resource\Attributes\CanResource;
 use Bfg\Resource\Attributes\CanUser;
-use Bfg\Resource\Exceptions\PermissionDeniedException;
 use Bfg\Resource\Traits\ResourceClassApiTrait;
 use Bfg\Resource\Traits\ResourceInitializations;
 use Bfg\Resource\Traits\ResourceRoutingTrait;
@@ -117,7 +116,6 @@ abstract class BfgResource extends JsonResource
      * @param  null  $resource
      * @param  int|null  $index
      * @param  array  $only More is needed for embedded resource extensions.
-     * @throws PermissionDeniedException
      */
     public function __construct($resource = null, ?int $index = null, array $only = [])
     {
@@ -264,7 +262,6 @@ abstract class BfgResource extends JsonResource
      *
      * @param  mixed  $resource
      * @return BfgResourceCollection
-     * @throws PermissionDeniedException
      */
     public static function collection($resource): BfgResourceCollection
     {
@@ -280,7 +277,6 @@ abstract class BfgResource extends JsonResource
      *
      * @param  mixed  ...$parameters
      * @return static
-     * @throws PermissionDeniedException
      */
     public static function make(...$parameters): static
     {
@@ -291,7 +287,6 @@ abstract class BfgResource extends JsonResource
      * Method for autodetect and create instance for collection or single resource.
      * @param $resource
      * @return BfgResourceCollection|static
-     * @throws PermissionDeniedException
      */
     public static function create($resource): BfgResourceCollection|static
     {
