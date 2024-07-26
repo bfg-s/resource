@@ -3,6 +3,7 @@
 namespace {{ namespace }};
 
 use Bfg\Resource\BfgResource;
+use Bfg\Resource\Traits\Model\ModelTimestampsTrait;
 {{ doc_block }}
 class {{ class }} extends BfgResource
 {{{ uses }}

@@ -3,6 +3,7 @@
 namespace Bfg\Resource\Commands;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Console\ResourceMakeCommand as IlluminateResourceMakeCommand;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Input\InputOption;
@@ -75,10 +76,14 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
 
                 $result = "";
 
-                foreach (['id', ...$m->getFillable()] as $item) {
-                    if (!str_ends_with($item, '_id')) {
-                        $result .= str_repeat(' ', 8) . "'{$item}',\n";
-                    }
+                $fields = ['id', ...$m->getFillable(), 'created_at', 'updated_at'];
+
+                if (array_key_exists(SoftDeletes::class, class_uses($m))) {
+                    $fields[] = 'deleted_at';
+                }
+
+                foreach ($fields as $item) {
+                    $result .= str_repeat(' ', 8) . "'{$item}',\n";
                 }
 
                 return trim($result);
@@ -103,6 +108,7 @@ class ResourceMakeCommand extends IlluminateResourceMakeCommand
             $t = $m ? "\n    public static \$model = $class::class;\n" : '';
             // use EloquentScopesTrait, ModelScopesTrait;
             return <<<DOC
+use ModelTimestampsTrait;
 {$t}
 DOC;
         }
