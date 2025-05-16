@@ -197,26 +197,31 @@ trait ResourceInitializations
         if (! isset($resource_result)) {
             $resource_result = null;
         }
-
-        if ($resource_class && $this->resource) {
-            if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator) {
-                $this->fields[$name] = $resource_result = tap(new BfgResourceCollection($resource_result,
-                    $resource_class), function ($collection) use ($resource_class) {
-                    if (property_exists($resource_class, 'preserveKeys')) {
-                        $collection->preserveKeys = (new static([]))->preserveKeys === true;
-                    }
-                });
-            } elseif ($resource_result) {
-                $this->fields[$name] = $resource_result = new $resource_class($resource_result);
-            }
-        } else {
-            $this->fields[$name] = $resource_result = $this->fieldCasting($name, $resource_result);
+        $dropped = false;
+        if ($drop_if_null && is_null($this->fields[$name] ?? null)) {
+            unset($this->fields[$name]);
+            $dropped = true;
         }
 
-        if ($relation_loaded && ! isset($this->fields[$name]) && ! $drop_if_null) {
-            $this->fields[$name] = $relation_collection ? [] : null;
-        } elseif ($drop_if_null && array_key_exists($name, $this->fields) && is_null($this->fields[$name])) {
-            unset($this->fields[$name]);
+        if (! $dropped) {
+            if ($resource_class && $this->resource) {
+                if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator) {
+                    $this->fields[$name] = $resource_result = tap(new BfgResourceCollection($resource_result,
+                        $resource_class), function ($collection) use ($resource_class) {
+                        if (property_exists($resource_class, 'preserveKeys')) {
+                            $collection->preserveKeys = (new static([]))->preserveKeys === true;
+                        }
+                    });
+                } elseif ($resource_result) {
+                    $this->fields[$name] = $resource_result = new $resource_class($resource_result);
+                }
+            } else {
+                $this->fields[$name] = $resource_result = $this->fieldCasting($name, $resource_result);
+            }
+
+            if ($relation_loaded && !isset($this->fields[$name]) && !$drop_if_null) {
+                $this->fields[$name] = $relation_collection ? [] : null;
+            }
         }
 
         return $resource_result;
