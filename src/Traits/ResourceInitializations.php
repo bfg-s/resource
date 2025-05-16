@@ -198,7 +198,7 @@ trait ResourceInitializations
             $resource_result = null;
         }
         $dropped = false;
-        if ($drop_if_null && is_null($this->fields[$name] ?? null)) {
+        if ($drop_if_null && is_null($resource_result)) {
             unset($this->fields[$name]);
             $dropped = true;
         }
