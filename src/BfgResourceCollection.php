@@ -17,12 +17,13 @@ class BfgResourceCollection extends ResourceCollection
      * Create a new anonymous resource collection.
      *
      * @param  mixed  $resource
-     * @param  string  $collects
-     * @return void
+     * @param  string|null  $collects
      */
-    public function __construct($resource, $collects)
+    public function __construct($resource, string $collects = null)
     {
-        $this->collects = $collects;
+        if ($collects) {
+            $this->collects = $collects;
+        }
 
         parent::__construct($resource);
     }
