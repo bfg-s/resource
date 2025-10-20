@@ -93,6 +93,39 @@ class BfgResourceCollection extends ResourceCollection
     }
 
     /**
+     * Set the errors of the response.
+     *
+     * @param  object|array<array-key, mixed>  $errors
+     * @return $this
+     */
+    public function setErrors(object|array $errors): static
+    {
+        if (is_object($errors) && method_exists($errors, 'errors')) {
+            $errors = call_user_func([$errors, 'errors'], $this);
+        }
+
+        if (count($errors) > 0) {
+            $this->with['errors'] = $errors;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add additional meta data to the response.
+     *
+     * @param  array<string, mixed>  $meta
+     * @return static
+     */
+    public function setMeta(array $meta): static
+    {
+        $existing = isset($this->with['meta']) && is_array($this->with['meta']) ? $this->with['meta'] : [];
+        $this->with['meta'] = array_merge_recursive($existing, $meta);
+
+        return $this;
+    }
+
+    /**
      * Proxy with for first resource.
      *
      * @param  \Illuminate\Http\Request  $request

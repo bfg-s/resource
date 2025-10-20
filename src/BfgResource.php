@@ -519,6 +519,53 @@ abstract class BfgResource extends JsonResource
     }
 
     /**
+     * Set the errors of the response.
+     *
+     * @param  object|array<array-key, mixed>  $errors
+     * @return $this
+     */
+    public function setErrors(object|array $errors): static
+    {
+        if (is_object($errors) && method_exists($errors, 'errors')) {
+            $errors = call_user_func([$errors, 'errors'], $this);
+        }
+
+        if (count($errors) > 0) {
+            $this->with['errors'] = $errors;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add additional data to the response.
+     *
+     * @param  array<int|string, mixed>  $data
+     * @return static
+     */
+    public function setData(array $data): static
+    {
+        $existing = isset($this->with['data']) && is_array($this->with['data']) ? $this->with['data'] : [];
+        $this->with['data'] = array_merge_recursive($existing, $data);
+
+        return $this;
+    }
+
+    /**
+     * Add additional meta data to the response.
+     *
+     * @param  array<string, mixed>  $meta
+     * @return static
+     */
+    public function setMeta(array $meta): static
+    {
+        $existing = isset($this->with['meta']) && is_array($this->with['meta']) ? $this->with['meta'] : [];
+        $this->with['meta'] = array_merge_recursive($existing, $meta);
+
+        return $this;
+    }
+
+    /**
      * Set with variable
      *
      * @param  array  $with
@@ -527,6 +574,19 @@ abstract class BfgResource extends JsonResource
     public function setWith(array $with): static
     {
         $this->with = $with;
+
+        return $this;
+    }
+
+    /**
+     * Merge with variable
+     *
+     * @param  array<string, mixed>  $with
+     * @return $this
+     */
+    public function mergeWith(array $with): static
+    {
+        $this->with = array_merge($this->with, $with);
 
         return $this;
     }
