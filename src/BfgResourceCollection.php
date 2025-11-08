@@ -4,20 +4,30 @@ namespace Bfg\Resource;
 
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
+/**
+ * @template-covariant TResource of \Bfg\Resource\BfgResource
+ */
 class BfgResourceCollection extends ResourceCollection
 {
     /**
      * The name of the resource being collected.
      *
-     * @var string
+     * @var class-string<TResource>
      */
     public $collects;
+
+    /**
+     * The mapped collection instance.
+     *
+     * @var \Illuminate\Support\Collection<int, TResource>
+     */
+    public $collection;
 
     /**
      * Create a new anonymous resource collection.
      *
      * @param  mixed  $resource
-     * @param  string|null  $collects
+     * @param  class-string<TResource>|null  $collects
      */
     public function __construct($resource, string $collects = null)
     {
@@ -46,18 +56,19 @@ class BfgResourceCollection extends ResourceCollection
      * Transform the resource into a JSON array.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return array
+     * @return array<array<string, mixed>>
      */
-    public function toArray($request)
+    public function toArray($request): array
     {
         return $this->toFields();
     }
 
     /**
      * Transform to array fields.
-     * @return mixed
+     *
+     * @return array<array<string, mixed>>
      */
-    public function toFields()
+    public function toFields(): array
     {
         return $this->collection
             ->map(fn ($i) => $i->toFields())
