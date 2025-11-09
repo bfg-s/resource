@@ -12,6 +12,40 @@ use Illuminate\Support\Facades\Date;
 trait ResourceCasting
 {
     /**
+     * The built-in, primitive cast types supported by Eloquent.
+     *
+     * @var string[]
+     */
+    protected array $__primitiveCastTypes = [
+        'array',
+        'bool',
+        'boolean',
+        'collection',
+        'custom_datetime',
+        'date',
+        'datetime',
+        'decimal',
+        'double',
+        'encrypted',
+        'encrypted:array',
+        'encrypted:collection',
+        'encrypted:json',
+        'encrypted:object',
+        'float',
+        'hashed',
+        'immutable_date',
+        'immutable_datetime',
+        'immutable_custom_datetime',
+        'int',
+        'integer',
+        'json',
+        'object',
+        'real',
+        'string',
+        'timestamp',
+    ];
+
+    /**
      * @param  string  $name
      * @param $value
      * @return mixed
@@ -20,7 +54,6 @@ trait ResourceCasting
     {
         if (isset($this->casts[$name])) {
             $castType = $this->casts[$name];
-
             switch ($castType) {
                 case 'int':
                 case 'integer':
@@ -52,12 +85,67 @@ trait ResourceCasting
                     return $this->asTimestamp($value);
             }
 
+            if ($this->isEnumCastable($name)) {
+                return $this->getEnumCastableAttributeValue($name, $value);
+            }
+
             if (is_string($castType) && class_exists($castType)) {
                 return $this->getClassCastableAttributeValue($name, $value);
             }
         }
 
         return $value;
+    }
+
+    /**
+     * Cast the given attribute to an enum.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return mixed
+     */
+    protected function getEnumCastableAttributeValue(string $key, mixed $value): mixed
+    {
+        if (is_null($value)) {
+            return null;
+        }
+
+        $castType = $this->casts[$key];
+
+        return $this->getEnumCaseFromValue($castType, $value);
+    }
+
+    /**
+     * Determine if the given key is cast using an enum.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    protected function isEnumCastable(string $key): bool
+    {
+        if (! array_key_exists($key, $this->casts)) {
+            return false;
+        }
+
+        if (in_array($this->casts[$key], $this->__primitiveCastTypes)) {
+            return false;
+        }
+
+        return enum_exists($this->casts[$key]);
+    }
+
+    /**
+     * Get an enum case instance from a given class and value.
+     *
+     * @param  string  $enumClass
+     * @param  string|int  $value
+     * @return \UnitEnum|\BackedEnum
+     */
+    protected function getEnumCaseFromValue($enumClass, $value): \BackedEnum|\UnitEnum
+    {
+        return is_subclass_of($enumClass, \BackedEnum::class)
+            ? $enumClass::from($value)
+            : constant($enumClass.'::'.$value);
     }
 
     /**
