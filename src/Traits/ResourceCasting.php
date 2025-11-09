@@ -112,6 +112,10 @@ trait ResourceCasting
 
         $castType = $this->casts[$key];
 
+        if ($value instanceof $castType) {
+            return $value;
+        }
+
         return $this->getEnumCaseFromValue($castType, $value);
     }
 
