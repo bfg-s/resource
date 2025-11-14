@@ -261,7 +261,7 @@ abstract class BfgResource extends JsonResource
      * Create a new anonymous resource collection.
      *
      * @param  mixed  $resource
-     * @return BfgResourceCollection
+     * @return BfgResourceCollection<static>
      */
     public static function collection($resource): BfgResourceCollection
     {
