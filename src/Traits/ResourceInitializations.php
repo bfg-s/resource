@@ -184,6 +184,9 @@ trait ResourceInitializations
                 }
             }
         } else {
+            if ($resource_class) {
+
+            }
             $resource_result = $this->resource ?
                 static::multiDotCall($this->resource, $path ?: $name) : null;
         }
@@ -214,6 +217,8 @@ trait ResourceInitializations
                     });
                 } elseif ($resource_result) {
                     $this->fields[$name] = $resource_result = new $resource_class($resource_result);
+                } elseif (class_exists("Bfg\\Dto\\Dto") && is_subclass_of($this->resource, "Bfg\\Dto\\Dto")) {
+                    $this->fields[$name] = $resource_result = [];
                 }
             } else {
                 $this->fields[$name] = $resource_result = $this->fieldCasting($name, $resource_result);
