@@ -73,12 +73,11 @@ trait ResourceCasting
                 case 'boolean':
                     return (bool) $value;
                 case 'object':
-                    return $this->fromJson($value, true);
                 case 'array':
                 case 'json':
-                    return $this->fromJson($value);
+                    return (array) $value;
                 case 'collection':
-                    return new BaseCollection($this->fromJson($value));
+                    return new BaseCollection($value);
                 case 'date':
                     return $this->asDate($value);
                 case 'datetime':
