@@ -5,6 +5,7 @@ namespace Bfg\Resource\Traits;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Castable;
 use Illuminate\Contracts\Database\Eloquent\CastsInboundAttributes;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Facades\Date;
@@ -75,6 +76,11 @@ trait ResourceCasting
                 case 'object':
                 case 'array':
                 case 'json':
+                    if ($value instanceof BaseCollection) {
+                        return $value->all();
+                    } elseif ($value instanceof Arrayable) {
+                        return $value->toArray();
+                    }
                     return (array) $value;
                 case 'collection':
                     return new BaseCollection($value);
