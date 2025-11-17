@@ -208,7 +208,7 @@ trait ResourceInitializations
 
         if (! $dropped) {
             if ($resource_class && $this->resource) {
-                if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator) {
+                if ($resource_result instanceof Collection || $resource_result instanceof LengthAwarePaginator || (is_array($resource_result) && array_values($resource_result) === $resource_result)) {
                     $this->fields[$name] = $resource_result = tap(new BfgResourceCollection($resource_result,
                         $resource_class), function ($collection) use ($resource_class) {
                         if (property_exists($resource_class, 'preserveKeys')) {
