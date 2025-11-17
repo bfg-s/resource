@@ -54,7 +54,9 @@ trait ResourceCasting
     {
         if (isset($this->casts[$name])) {
             $castType = $this->casts[$name];
-            [$castType, $param] = is_string($castType) ? explode(':', $castType, 2) : null;
+            $exploded = is_string($castType) ? explode(':', $castType, 2) : [$castType];
+            $castType = $exploded[0];
+            $param = $exploded[1] ?? null;
             switch ($castType) {
                 case 'int':
                 case 'integer':
