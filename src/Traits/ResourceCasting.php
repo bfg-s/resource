@@ -54,6 +54,7 @@ trait ResourceCasting
     {
         if (isset($this->casts[$name])) {
             $castType = $this->casts[$name];
+            [$castType, $param] = is_string($castType) ? explode(':', $castType, 2) : null;
             switch ($castType) {
                 case 'int':
                 case 'integer':
@@ -80,7 +81,7 @@ trait ResourceCasting
                     return $this->asDate($value);
                 case 'datetime':
                 case 'custom_datetime':
-                    return $this->asDateTime($value);
+                    return $this->asDateTime($value, $param);
                 case 'timestamp':
                     return $this->asTimestamp($value);
             }
@@ -207,34 +208,47 @@ trait ResourceCasting
      * Return a timestamp as DateTime object.
      *
      * @param  mixed  $value
-     * @return bool|Carbon
+     * @param  string|null  $format
+     * @return bool|\Illuminate\Support\Carbon|string
      */
-    protected function asDateTime(mixed $value): bool|Carbon
+    protected function asDateTime(mixed $value, string|null $format = null): bool|Carbon|string
     {
         // If this value is already a Carbon instance, we shall just return it as is.
         // This prevents us having to re-instantiate a Carbon instance when we know
         // it already is one, which wouldn't be fulfilled by the DateTime check.
         if ($value instanceof CarbonInterface) {
-            return Date::instance($value);
+            $return = Date::instance($value);
+            if ($format) {
+                return $return->format($format);
+            }
+            return $return;
         }
 
         // If the value is already a DateTime instance, we will just skip the rest of
         // these checks since they will be a waste of time, and hinder performance
         // when checking the field. We will just return the DateTime right away.
         if ($value instanceof \DateTimeInterface) {
-            return Date::parse(
+            $return = Date::parse(
                 $value->format('Y-m-d H:i:s.u'), $value->getTimezone()
             );
+            if ($format) {
+                return $return->format($format);
+            }
+            return $return;
         }
 
         // If this value is an integer, we will assume it is a UNIX timestamp's value
         // and format a Carbon object from this timestamp. This allows flexibility
         // when defining your date fields as they might be UNIX timestamps here.
         if (is_numeric($value)) {
-            return Date::createFromTimestamp($value);
+            $return = Date::createFromTimestamp($value);
+            if ($format) {
+                return $return->format($format);
+            }
+            return $return;
         }
 
-        $format = $this->getDateFormat();
+        $format = $format ?: $this->getDateFormat();
 
         // Finally, we will just assume this date is in the format used by default on
         // the database connection and use that format to create the Carbon object
@@ -245,7 +259,11 @@ trait ResourceCasting
             $date = false;
         }
 
-        return $date ?: Date::parse($value);
+        $return = $date ?: Date::parse($value);
+        if ($format) {
+            return $return->format($format);
+        }
+        return $return;
     }
 
     /**
